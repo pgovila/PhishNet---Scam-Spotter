@@ -1,4 +1,4 @@
-FROM python:3.11-slim
+FROM python:3.12-slim
 
 # System dependencies for Tesseract OCR
 RUN apt-get update && \

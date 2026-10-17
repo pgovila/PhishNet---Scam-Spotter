@@ -267,20 +267,6 @@ curl -X POST "http://localhost:8000/v1/analyze" \
   "act_now_applied": true
 }
 ```
-
----
-
-## 📄 Submission PDF Generation
-
-The automated PDF compilation script verifies links, embeds team details, architecture diagrams, scoring rubrics, and video QR codes:
-
-```bash
-# 1. Update submission.yaml with your team info and live URLs
-# 2. Run the PDF builder:
-python scripts/build_submission_pdf.py
-```
-Outputs `PhishNet_Submission.pdf` (5-page A4 presentation document).
-
 ---
 
 ## 🛡️ Privacy & Security Stance
