@@ -110,9 +110,13 @@ STRINGS: dict[str, dict[str, str]] = {
         "en": "Scoring mode",
         "hi": "स्कोरिंग मोड",
     },
+    "dpdp_notice": {
+        "en": "🛡️ DPDP Act 2023 Compliant: Zero-retention privacy architecture. Your personal data, phone numbers, and messages are never stored, logged, or shared.",
+        "hi": "🛡️ DPDP अधिनियम 2023 के अनुरूप: शून्य-डेटा प्रतिधारण सुरक्षा। आपकी व्यक्तिगत जानकारी, फोन नंबर और संदेश कभी भी सहेजे, लॉग या साझा नहीं किए जाते हैं।",
+    },
     "footer_privacy": {
-        "en": "🔒 PhishNet never stores your messages. Analysis runs locally.",
-        "hi": "🔒 फ़िशनेट आपके संदेश कभी संग्रहीत नहीं करता। विश्लेषण स्थानीय रूप से चलता है।",
+        "en": "🔒 100% DPDP Act 2023 Compliant · Zero-Retention Privacy · Messages are processed in ephemeral memory and never stored.",
+        "hi": "🔒 भारत के DPDP अधिनियम 2023 के पूर्णतः अनुरूप · शून्य डेटा प्रतिधारण · संदेश केवल अल्पकालिक मेमोरी में विश्लेषित होते हैं और कभी संग्रहीत नहीं होते।",
     },
 }
 

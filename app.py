@@ -250,192 +250,527 @@ def _ai_simplify(findings: list[Finding], lang: str) -> dict[str, str]:
 
 
 def _inject_css() -> None:
-    """Inject custom CSS for dark theme."""
+    """Inject custom CSS for a futuristic cybersecurity command center UI."""
     st.markdown(
         f"""
     <style>
-        /* Global */
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+        /* Global typography & background */
+        html, body, [class*="css"], .stApp {{
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif !important;
+            background-color: #070B14 !important;
+            color: #F8FAFC !important;
+        }}
+
         .stApp {{
-            background-color: {BG_DARK};
-            color: {TEXT_WHITE};
+            background:
+                radial-gradient(ellipse at 50% -10%, rgba(56, 189, 248, 0.16) 0%, rgba(99, 102, 241, 0.08) 35%, transparent 70%),
+                radial-gradient(circle at 95% 30%, rgba(168, 85, 247, 0.08) 0%, transparent 45%),
+                radial-gradient(circle at 5% 70%, rgba(59, 130, 246, 0.07) 0%, transparent 45%),
+                #070B14 !important;
+            background-attachment: fixed !important;
         }}
         .stApp header {{
-            background-color: {BG_DARK};
+            background-color: transparent !important;
         }}
 
-        /* Cards */
+        /* Glassmorphic cards */
         .phishnet-card {{
-            background: {CARD_BG};
-            border-radius: 16px;
-            padding: 24px;
-            margin: 12px 0;
-            border: 1px solid rgba(255,255,255,0.06);
-            box-shadow: 0 4px 24px rgba(0,0,0,0.3);
+            background: linear-gradient(135deg, rgba(17, 24, 39, 0.85) 0%, rgba(15, 23, 42, 0.7) 100%);
+            border-radius: 20px;
+            padding: 24px 28px;
+            margin: 16px 0;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 16px 40px -8px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(16px);
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }}
+        .phishnet-card:hover {{
+            border-color: rgba(255, 255, 255, 0.14);
         }}
 
-        /* Tier badges */
-        .tier-badge {{
+        /* Hero Header */
+        .hero-container {{
+            text-align: center;
+            padding: 10px 0 20px 0;
+        }}
+        .hero-pill {{
             display: inline-flex;
             align-items: center;
             gap: 8px;
-            padding: 8px 20px;
-            border-radius: 999px;
+            padding: 6px 16px;
+            border-radius: 9999px;
+            background: rgba(56, 189, 248, 0.1);
+            border: 1px solid rgba(56, 189, 248, 0.25);
+            font-size: 0.78rem;
             font-weight: 700;
-            font-size: 1.1rem;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.8px;
+            color: #38BDF8;
+            text-transform: uppercase;
+            margin-bottom: 12px;
+            box-shadow: 0 0 16px rgba(56, 189, 248, 0.15);
         }}
-        .tier-high {{
-            background: rgba(239,68,68,0.15);
-            color: {CRIMSON};
-            border: 2px solid {CRIMSON};
+        .pulse-dot {{
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: #38BDF8;
+            box-shadow: 0 0 8px #38BDF8;
+            animation: pulse-glow 2s infinite;
         }}
-        .tier-medium {{
-            background: rgba(245,165,36,0.15);
-            color: {AMBER};
-            border: 2px solid {AMBER};
-        }}
-        .tier-low {{
-            background: rgba(16,185,129,0.15);
-            color: {EMERALD};
-            border: 2px solid {EMERALD};
+        @keyframes pulse-glow {{
+            0% {{ transform: scale(0.95); opacity: 0.8; }}
+            50% {{ transform: scale(1.3); opacity: 1; }}
+            100% {{ transform: scale(0.95); opacity: 0.8; }}
         }}
 
-        /* Score gauge */
-        .score-gauge {{
-            text-align: center;
-            padding: 20px;
+        .hero-title {{
+            font-family: 'Outfit', sans-serif !important;
+            font-size: 3.2rem !important;
+            font-weight: 900 !important;
+            letter-spacing: -1px !important;
+            margin: 0 !important;
+            background: linear-gradient(135deg, #FFFFFF 20%, #93C5FD 50%, #C084FC 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 4px 20px rgba(99, 102, 241, 0.2);
+            line-height: 1.15 !important;
         }}
-        .score-number {{
-            font-size: 4rem;
+        .hero-tagline {{
+            font-size: 1.15rem;
+            font-weight: 500;
+            color: #94A3B8;
+            margin-top: 10px;
+            letter-spacing: 0.2px;
+        }}
+        .hero-tagline strong {{
+            color: #F1F5F9;
+        }}
+        .hero-tagline .highlight-ask {{
+            color: #C084FC;
+            font-weight: 700;
+        }}
+
+        /* DPDP Act 2023 Shield Banner */
+        .dpdp-shield-card {{
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.09) 0%, rgba(56, 189, 248, 0.05) 100%);
+            border: 1px solid rgba(16, 185, 129, 0.28);
+            border-radius: 16px;
+            padding: 16px 20px;
+            margin: 18px 0 24px 0;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            box-shadow: 0 6px 24px -4px rgba(16, 185, 129, 0.12);
+        }}
+        .dpdp-icon-box {{
+            font-size: 1.8rem;
+            flex-shrink: 0;
+            background: rgba(16, 185, 129, 0.15);
+            width: 48px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }}
+        .dpdp-content {{
+            flex-grow: 1;
+            font-size: 0.88rem;
+            line-height: 1.5;
+            color: #CBD5E1;
+        }}
+        .dpdp-badge {{
+            display: inline-block;
+            background: rgba(16, 185, 129, 0.2);
+            color: #34D399;
+            font-size: 0.72rem;
             font-weight: 800;
-            line-height: 1;
-        }}
-        .score-label {{
-            font-size: 0.9rem;
-            color: {TEXT_MUTED};
-            margin-top: 4px;
+            letter-spacing: 0.6px;
+            padding: 2px 8px;
+            border-radius: 6px;
+            text-transform: uppercase;
+            margin-right: 6px;
+            vertical-align: middle;
         }}
 
-        /* Findings */
+        /* Circular SVG Gauge & Tier Display */
+        .score-gauge-container {{
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 24px 20px;
+            text-align: center;
+        }}
+        .gauge-wrapper {{
+            position: relative;
+            width: 170px;
+            height: 170px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }}
+        .radial-gauge {{
+            width: 100%;
+            height: 100%;
+            transform: rotate(-90deg);
+        }}
+        .gauge-track {{
+            fill: none;
+            stroke: rgba(255, 255, 255, 0.06);
+            stroke-width: 12;
+        }}
+        .gauge-progress {{
+            fill: none;
+            stroke-width: 12;
+            stroke-linecap: round;
+            transition: stroke-dashoffset 1s ease-out;
+        }}
+        .gauge-center-content {{
+            position: absolute;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }}
+        .gauge-score-value {{
+            font-family: 'Outfit', sans-serif;
+            font-size: 3.2rem;
+            font-weight: 900;
+            line-height: 1;
+            letter-spacing: -1px;
+        }}
+        .gauge-score-total {{
+            font-size: 0.82rem;
+            color: #94A3B8;
+            font-weight: 600;
+            margin-top: 2px;
+        }}
+        .gauge-label-pill {{
+            margin-top: 14px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: #94A3B8;
+        }}
+
+        /* Tier Card */
+        .tier-card {{
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 24px 26px;
+            height: 100%;
+            position: relative;
+            border-radius: 20px;
+        }}
+        .tier-card.tier-high {{
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.12) 0%, rgba(15, 23, 42, 0.7) 100%);
+            border: 1px solid rgba(239, 68, 68, 0.35);
+            box-shadow: 0 8px 32px -4px rgba(239, 68, 68, 0.2);
+        }}
+        .tier-card.tier-medium {{
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.12) 0%, rgba(15, 23, 42, 0.7) 100%);
+            border: 1px solid rgba(245, 158, 11, 0.35);
+            box-shadow: 0 8px 32px -4px rgba(245, 158, 11, 0.2);
+        }}
+        .tier-card.tier-low {{
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.12) 0%, rgba(15, 23, 42, 0.7) 100%);
+            border: 1px solid rgba(16, 185, 129, 0.35);
+            box-shadow: 0 8px 32px -4px rgba(16, 185, 129, 0.2);
+        }}
+        .tier-badge-pill {{
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 18px;
+            border-radius: 9999px;
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.15rem;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            width: fit-content;
+            margin-bottom: 12px;
+        }}
+        .tier-badge-pill.tier-high {{
+            background: rgba(239, 68, 68, 0.2);
+            color: #F87171;
+            border: 1px solid rgba(239, 68, 68, 0.4);
+            box-shadow: 0 0 20px rgba(239, 68, 68, 0.25);
+        }}
+        .tier-badge-pill.tier-medium {{
+            background: rgba(245, 158, 11, 0.2);
+            color: #FBBF24;
+            border: 1px solid rgba(245, 158, 11, 0.4);
+            box-shadow: 0 0 20px rgba(245, 158, 11, 0.25);
+        }}
+        .tier-badge-pill.tier-low {{
+            background: rgba(16, 185, 129, 0.2);
+            color: #34D399;
+            border: 1px solid rgba(16, 185, 129, 0.4);
+            box-shadow: 0 0 20px rgba(16, 185, 129, 0.25);
+        }}
+        .tier-subtitle {{
+            font-size: 0.92rem;
+            line-height: 1.5;
+            color: #CBD5E1;
+        }}
+
+        /* Findings Micro-Cards */
         .finding-row {{
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 12px 16px;
-            margin: 4px 0;
-            border-radius: 10px;
-            background: rgba(255,255,255,0.03);
-            border-left: 4px solid;
+            padding: 14px 18px;
+            margin: 8px 0;
+            border-radius: 12px;
+            background: rgba(15, 23, 42, 0.65);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-left: 5px solid;
+            transition: all 0.2s ease;
+        }}
+        .finding-row:hover {{
+            background: rgba(30, 41, 59, 0.7);
+            border-color: rgba(255, 255, 255, 0.1);
+            transform: translateX(2px);
         }}
         .finding-bait {{ border-left-color: {AMBER}; }}
         .finding-hook {{ border-left-color: {CRIMSON}; }}
-        .finding-ask {{ border-left-color: #8B5CF6; }}
-        .finding-protective {{ border-left-color: {EMERALD}; opacity: 0.7; }}
+        .finding-ask {{ border-left-color: #A855F7; }}
+        .finding-protective {{ border-left-color: {EMERALD}; }}
 
         .finding-label {{
-            font-weight: 600;
-            font-size: 0.95rem;
+            font-weight: 700;
+            font-size: 0.98rem;
+            color: #F8FAFC;
         }}
         .finding-match {{
-            font-size: 0.85rem;
-            color: {TEXT_MUTED};
-            font-style: italic;
-            margin-top: 2px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.84rem;
+            color: #94A3B8;
+            background: rgba(0, 0, 0, 0.35);
+            padding: 3px 8px;
+            border-radius: 6px;
+            display: inline-block;
+            margin-top: 4px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
         }}
         .finding-reason {{
-            font-size: 0.82rem;
-            color: {TEXT_MUTED};
-            margin-top: 2px;
+            font-size: 0.85rem;
+            color: #CBD5E1;
+            margin-top: 5px;
+            line-height: 1.4;
         }}
         .finding-points {{
-            font-weight: 700;
-            font-size: 1.1rem;
+            font-family: 'Outfit', sans-serif;
+            font-weight: 800;
+            font-size: 1.15rem;
+            padding: 4px 12px;
+            border-radius: 8px;
             white-space: nowrap;
         }}
-        .points-positive {{ color: {CRIMSON}; }}
-        .points-zero {{ color: {EMERALD}; }}
+        .points-positive {{
+            color: #F87171;
+            background: rgba(239, 68, 68, 0.12);
+            border: 1px solid rgba(239, 68, 68, 0.25);
+        }}
+        .points-zero {{
+            color: #34D399;
+            background: rgba(16, 185, 129, 0.12);
+            border: 1px solid rgba(16, 185, 129, 0.25);
+        }}
 
-        /* Highlighted message */
+        /* Message Highlight Inspector */
+        .msg-inspector-container {{
+            border-radius: 14px;
+            overflow: hidden;
+            background: #0B0F19;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            margin-top: 8px;
+        }}
+        .msg-inspector-bar {{
+            background: rgba(255, 255, 255, 0.04);
+            padding: 10px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }}
+        .window-dots {{
+            display: flex;
+            gap: 6px;
+        }}
+        .dot {{
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }}
+        .dot-red {{ background: #EF4444; }}
+        .dot-yellow {{ background: #F59E0B; }}
+        .dot-green {{ background: #10B981; }}
+        .inspector-title {{
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 1px;
+            color: #94A3B8;
+            text-transform: uppercase;
+        }}
         .msg-highlight {{
-            font-family: 'Segoe UI', sans-serif;
-            font-size: 1rem;
-            line-height: 1.8;
-            padding: 16px;
-            background: rgba(0,0,0,0.3);
-            border-radius: 10px;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 1.05rem;
+            line-height: 1.9;
+            padding: 20px;
             word-wrap: break-word;
+            color: #F1F5F9;
         }}
         .hl-bait {{
-            background: rgba(245,165,36,0.25);
+            background: rgba(245, 158, 11, 0.22);
+            color: #FDE68A;
             border-bottom: 2px solid {AMBER};
-            padding: 1px 4px;
-            border-radius: 3px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 600;
         }}
         .hl-hook {{
-            background: rgba(239,68,68,0.25);
+            background: rgba(239, 68, 68, 0.22);
+            color: #FECACA;
             border-bottom: 2px solid {CRIMSON};
-            padding: 1px 4px;
-            border-radius: 3px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 600;
         }}
         .hl-ask {{
-            background: rgba(139,92,246,0.25);
+            background: rgba(168, 85, 247, 0.22);
+            color: #E9D5FF;
             border-bottom: 2px solid #8B5CF6;
-            padding: 1px 4px;
-            border-radius: 3px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 600;
         }}
         .hl-protective {{
-            background: rgba(16,185,129,0.15);
+            background: rgba(16, 185, 129, 0.18);
+            color: #A7F3D0;
             border-bottom: 2px dashed {EMERALD};
-            padding: 1px 4px;
-            border-radius: 3px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 600;
         }}
 
-        /* Next steps */
-        .next-step {{
-            padding: 8px 0;
-            font-size: 0.95rem;
-        }}
-
-        /* Category header */
+        /* Category Headers */
         .cat-header {{
-            font-size: 1rem;
-            font-weight: 700;
-            margin: 16px 0 8px 0;
-            padding: 6px 12px;
-            border-radius: 8px;
-        }}
-        .cat-bait {{ background: rgba(245,165,36,0.1); color: {AMBER}; }}
-        .cat-hook {{ background: rgba(239,68,68,0.1); color: {CRIMSON}; }}
-        .cat-ask {{ background: rgba(139,92,246,0.1); color: #8B5CF6; }}
-
-        /* Tagline */
-        .tagline {{
-            text-align: center;
-            font-size: 1.1rem;
-            color: {TEXT_MUTED};
-            font-style: italic;
-            margin-bottom: 20px;
-        }}
-
-        /* Example buttons */
-        .stButton > button {{
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.05rem;
+            font-weight: 800;
+            margin: 18px 0 10px 0;
+            padding: 8px 14px;
             border-radius: 10px;
+            letter-spacing: 0.3px;
+        }}
+        .cat-bait {{ background: rgba(245, 158, 11, 0.12); color: {AMBER}; border: 1px solid rgba(245, 158, 11, 0.2); }}
+        .cat-hook {{ background: rgba(239, 68, 68, 0.12); color: {CRIMSON}; border: 1px solid rgba(239, 68, 68, 0.2); }}
+        .cat-ask {{ background: rgba(139, 92, 246, 0.12); color: #8B5CF6; border: 1px solid rgba(139, 92, 246, 0.2); }}
+
+        /* Next Steps Checklist */
+        .next-step-card {{
+            padding: 12px 16px;
+            margin: 8px 0;
+            border-radius: 12px;
+            background: rgba(15, 23, 42, 0.65);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 0.95rem;
+            color: #E2E8F0;
         }}
 
-        /* Mobile friendly */
+        /* Streamlit Input Overrides */
+        .stTextArea textarea {{
+            background: rgba(15, 23, 42, 0.7) !important;
+            border: 1px solid rgba(255, 255, 255, 0.1) !important;
+            border-radius: 14px !important;
+            color: #F8FAFC !important;
+            font-size: 1rem !important;
+            line-height: 1.6 !important;
+            backdrop-filter: blur(12px) !important;
+            transition: all 0.25s ease !important;
+        }}
+        .stTextArea textarea:focus {{
+            border-color: #38BDF8 !important;
+            box-shadow: 0 0 25px rgba(56, 189, 248, 0.25) !important;
+        }}
+
+        /* Buttons */
+        div[data-testid="stButton"] > button[kind="primary"],
+        .stButton > button[kind="primary"] {{
+            background: linear-gradient(135deg, #2563EB 0%, #7C3AED 50%, #C026D3 100%) !important;
+            color: #FFFFFF !important;
+            font-family: 'Outfit', sans-serif !important;
+            font-weight: 800 !important;
+            letter-spacing: 0.5px !important;
+            border: none !important;
+            border-radius: 14px !important;
+            padding: 14px 28px !important;
+            font-size: 1.1rem !important;
+            box-shadow: 0 8px 25px -4px rgba(124, 58, 237, 0.5) !important;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        }}
+        div[data-testid="stButton"] > button[kind="primary"]:hover {{
+            transform: translateY(-2px) !important;
+            box-shadow: 0 12px 30px -4px rgba(124, 58, 237, 0.7) !important;
+        }}
+
+        /* Example Chip Buttons */
+        div[data-testid="column"] button {{
+            background: rgba(30, 41, 59, 0.65) !important;
+            border: 1px solid rgba(255, 255, 255, 0.08) !important;
+            color: #E2E8F0 !important;
+            font-size: 0.85rem !important;
+            font-weight: 600 !important;
+            border-radius: 10px !important;
+            padding: 8px 12px !important;
+            transition: all 0.2s ease !important;
+        }}
+        div[data-testid="column"] button:hover {{
+            background: rgba(56, 189, 248, 0.15) !important;
+            border-color: rgba(56, 189, 248, 0.4) !important;
+            color: #38BDF8 !important;
+            transform: translateY(-1px) !important;
+        }}
+
+        /* Mobile adjustments */
         @media (max-width: 768px) {{
-            .score-number {{ font-size: 3rem; }}
-            .finding-row {{ flex-direction: column; align-items: flex-start; gap: 4px; }}
+            .hero-title {{ font-size: 2.2rem !important; }}
+            .finding-row {{ flex-direction: column; align-items: flex-start; gap: 8px; }}
+            .dpdp-shield-card {{ flex-direction: column; text-align: center; }}
         }}
 
         /* Footer */
-        .footer {{
+        .footer-container {{
             text-align: center;
-            padding: 20px;
-            color: {TEXT_MUTED};
+            padding: 30px 20px 20px 20px;
+            color: #94A3B8;
             font-size: 0.85rem;
-            border-top: 1px solid rgba(255,255,255,0.06);
-            margin-top: 40px;
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+            margin-top: 48px;
+            line-height: 1.7;
+        }}
+        .footer-links {{
+            margin-top: 8px;
+            font-size: 0.8rem;
+        }}
+        .footer-links a {{
+            color: #38BDF8;
+            text-decoration: none;
+            margin: 0 8px;
+        }}
+        .footer-links a:hover {{
+            text-decoration: underline;
         }}
     </style>
     """,
@@ -506,26 +841,62 @@ def _highlight_message(text: str, findings: list[Finding]) -> str:
 
 
 def _render_gauge(score: int, lang: str) -> None:
-    """Render the risk score gauge."""
+    """Render a premium circular SVG risk score gauge."""
     color = _score_color(score)
-    st.markdown(
-        f"""
-    <div class="phishnet-card score-gauge">
-        <div class="score-number" style="color: {color};">{score}</div>
-        <div class="score-label">{t("score_label", lang)} / 100</div>
+    circumference = 427
+    clamped_score = max(0, min(score, 100))
+    offset = circumference - (circumference * clamped_score / 100)
+
+    gauge_svg = f"""
+    <div class="phishnet-card score-gauge-container">
+        <div class="gauge-wrapper">
+            <svg class="radial-gauge" viewBox="0 0 170 170">
+                <defs>
+                    <linearGradient id="gaugeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="{color}" stop-opacity="0.75"/>
+                        <stop offset="100%" stop-color="{color}"/>
+                    </linearGradient>
+                    <filter id="gaugeShadow" x="-20%" y="-20%" width="140%" height="140%">
+                        <feDropShadow dx="0" dy="0" stdDeviation="5" flood-color="{color}" flood-opacity="0.45"/>
+                    </filter>
+                </defs>
+                <circle cx="85" cy="85" r="68" class="gauge-track"/>
+                <circle cx="85" cy="85" r="68" class="gauge-progress"
+                    stroke="url(#gaugeGrad)"
+                    stroke-dasharray="{circumference}"
+                    stroke-dashoffset="{offset}"
+                    filter="url(#gaugeShadow)"/>
+            </svg>
+            <div class="gauge-center-content">
+                <div class="gauge-score-value" style="color: {color};">{score}</div>
+                <div class="gauge-score-total">/ 100</div>
+            </div>
+        </div>
+        <div class="gauge-label-pill">{t("score_label", lang)}</div>
     </div>
-    """,
-        unsafe_allow_html=True,
-    )
+    """
+    st.markdown(gauge_svg, unsafe_allow_html=True)
 
 
 def _render_tier_badge(tier: str, lang: str) -> None:
-    """Render the tier badge with text label."""
+    """Render the tier badge with vibrant styling and guidance subtitle."""
     badge_text = t(f"tier_{tier}", lang)
+    tier_icons = {"high": "⛔", "medium": "⚠️", "low": "🛡️"}
+    tier_subtitles = {
+        "high": "High-confidence deception markers detected. Refrain from clicking links or sharing any OTP/passwords.",
+        "medium": "Unverified or suspicious urgency signals detected. Verify authenticity before proceeding.",
+        "low": "No high-risk malicious asks detected. Appears consistent with normal notifications or protective alerts.",
+    }
+    icon = tier_icons.get(tier, "🔍")
+    subtitle = tier_subtitles.get(tier, "")
     st.markdown(
         f"""
-    <div style="text-align: center; margin: 12px 0;">
-        <span class="tier-badge {_tier_css(tier)}">{badge_text}</span>
+    <div class="phishnet-card tier-card {_tier_css(tier)}">
+        <div class="tier-badge-pill {_tier_css(tier)}">
+            <span>{icon}</span>
+            <span>{badge_text}</span>
+        </div>
+        <div class="tier-subtitle">{subtitle}</div>
     </div>
     """,
         unsafe_allow_html=True,
@@ -600,13 +971,17 @@ def _render_next_steps(result: AnalysisResult, lang: str) -> None:
     st.markdown(
         f"""
     <div class="phishnet-card">
-        <h3 style="margin-top: 0;">{"🛡️ " + t("next_steps_header", lang)}</h3>
+        <h3 style="margin-top: 0; display: flex; align-items: center; gap: 8px;">
+            <span>🛡️</span> <span>{t("next_steps_header", lang)}</span>
+        </h3>
     """,
         unsafe_allow_html=True,
     )
 
     for step in steps:
-        st.markdown(f'<div class="next-step">{html.escape(step)}</div>', unsafe_allow_html=True)
+        st.markdown(
+            f'<div class="next-step-card">{html.escape(step)}</div>', unsafe_allow_html=True
+        )
 
     st.markdown("</div>", unsafe_allow_html=True)
 
@@ -664,10 +1039,29 @@ def main() -> None:
 
     # ── Header ────────────────────────────────────────────────────────────
     st.markdown(
-        f"<h1 style='text-align: center; margin-bottom: 4px;'>{t('app_title', lang)}</h1>",
+        f"""
+        <div class="hero-container">
+            <h1 class="hero-title">{t("app_title", lang)}</h1>
+            <div class="hero-tagline">{t("tagline", lang)}</div>
+        </div>
+        """,
         unsafe_allow_html=True,
     )
-    st.markdown(f'<div class="tagline">{t("tagline", lang)}</div>', unsafe_allow_html=True)
+
+    # ── DPDP Act 2023 Shield Card ─────────────────────────────────────────
+    dpdp_text = t("dpdp_notice", lang)
+    st.markdown(
+        f"""
+        <div class="dpdp-shield-card">
+            <div class="dpdp-icon-box">🛡️</div>
+            <div class="dpdp-content">
+                <span class="dpdp-badge">DPDP ACT 2023</span>
+                {html.escape(dpdp_text.replace("🛡️ ", ""))}
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
 
     # ── Example buttons ───────────────────────────────────────────────────
     examples = _load_examples()
@@ -826,13 +1220,27 @@ def main() -> None:
                 )
 
         # Highlighted message
+        highlighted = _highlight_message(text, result.findings)
         st.markdown(
-            '<div class="phishnet-card"><h3 style="margin-top:0;">📝 Message</h3>',
+            f"""
+            <div class="phishnet-card">
+                <h3 style="margin-top:0;">🔍 Message Inspector</h3>
+                <div class="msg-inspector-container">
+                    <div class="msg-inspector-bar">
+                        <div class="window-dots">
+                            <span class="dot dot-red"></span>
+                            <span class="dot dot-yellow"></span>
+                            <span class="dot dot-green"></span>
+                        </div>
+                        <span class="inspector-title">DECONSTRUCTED TEXT STREAM</span>
+                        <span style="font-size:0.75rem; color:#64748B;">UTF-8 SECURE</span>
+                    </div>
+                    <div class="msg-highlight">{highlighted}</div>
+                </div>
+            </div>
+            """,
             unsafe_allow_html=True,
         )
-        highlighted = _highlight_message(text, result.findings)
-        st.markdown(f'<div class="msg-highlight">{highlighted}</div>', unsafe_allow_html=True)
-        st.markdown("</div>", unsafe_allow_html=True)
 
         # Findings table
         if result.findings:
@@ -884,7 +1292,19 @@ def main() -> None:
         st.markdown("</div>", unsafe_allow_html=True)
 
     # ── Footer ────────────────────────────────────────────────────────────
-    st.markdown(f'<div class="footer">{t("footer_privacy", lang)}</div>', unsafe_allow_html=True)
+    st.markdown(
+        f"""
+        <div class="footer-container">
+            <div>{t("footer_privacy", lang)}</div>
+            <div class="footer-links">
+                <a href="https://cybercrime.gov.in" target="_blank" rel="noopener noreferrer">National Cyber Crime Portal (cybercrime.gov.in)</a> •
+                <a href="tel:1930">Citizen Financial Cyber Fraud Helpline: 1930</a> •
+                <a href="https://sancharsaathi.gov.in" target="_blank" rel="noopener noreferrer">DoT Chakshu Portal</a>
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
 
 
 if __name__ == "__main__":
