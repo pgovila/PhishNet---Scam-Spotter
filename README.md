@@ -269,12 +269,13 @@ curl -X POST "http://localhost:8000/v1/analyze" \
 ```
 ---
 
-## 🛡️ Privacy & Security Stance
+## 🛡️ Privacy, DPDP Act 2023 Compliance & Security Stance
 
-- **No Data Retention**: Messages entered or scanned are never persisted or stored in databases.
-- **Local Rules Engine**: Message text stays on the local runtime without third-party exposure.
-- **PII Scrubbing**: Any optional AI explanation request automatically masks phone numbers and emails (`[PHONE]`, `[EMAIL]`).
-- **SSRF Immunity**: The link parser does not resolve external DNS or perform outbound requests during core analysis.
+PhishNet is designed strictly adhering to the principles of the **Digital Personal Data Protection Act, 2023 (DPDP Act)**:
+- **Zero Data Retention**: Messages, OTPs, phone numbers, and URLs entered or uploaded are processed exclusively in volatile memory and are **never stored, logged, or shared**.
+- **Ephemeral & Local Rules Engine**: Core deconstruction runs entirely offline on local rulebook algorithms without transmitting user message bodies to third-party endpoints.
+- **Client-Side Privacy & PII Scrubbing**: If optional AI explanation is enabled, phone numbers, bank account numbers, and email addresses are automatically scrubbed (`[PHONE]`, `[EMAIL]`) before payload dispatch.
+- **SSRF & Outbound Safe**: The offline link parser inspects domain anatomy, Unicode scripts, and Levenshtein distance against known Indian entities without performing active DNS lookups or outbound HTTP queries during evaluation.
 
 ---
 
