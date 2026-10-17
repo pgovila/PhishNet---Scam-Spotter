@@ -1,0 +1,229 @@
+# PhishNet Scoring Rules Configuration
+# Edit this file to adjust scoring without code changes.
+# Reload happens at app startup.
+#
+# Categories: bait (borrowed trust), hook (pressure/fear), ask (risky action)
+# Each rule: id, category, label, patterns (regex list), points, lang hint
+# Patterns are case-insensitive, applied after NFKC normalisation.
+
+version: "1.0"
+
+# ── Default mode ──────────────────────────────────────────────────────────────
+default:
+  act_now_bonus: 15          # added when Ask + (Bait or Hook) co-occur
+  max_score: 100
+  no_ask_cap: 54             # cap when no Ask finding is present
+
+  tiers:
+    low:    [0, 24]
+    medium: [25, 54]
+    high:   [55, 100]
+
+  rules:
+    # ── BAIT ──────────────────────────────────────────────────────────────────
+    - id: bait_brand
+      category: bait
+      label: Named brand / authority
+      label_hi: "ब्रांड/अधिकारी का नाम"
+      points: 10
+      patterns:
+        # Indian banks
+        - '\bSBI\b'
+        - '\bHDFC\b'
+        - '\bICICI\b'
+        - '\bAxis\s*Bank\b'
+        - '\bKotak\b'
+        - '\bPNB\b'
+        - '\bBank\s*of\s*Baroda\b'
+        - '\bCanara\s*Bank\b'
+        - '\bUnion\s*Bank\b'
+        - '\bBOI\b'
+        - '\bIDBI\b'
+        - '\bYes\s*Bank\b'
+        - '\bIndian\s*Bank\b'
+        - '\bBOB\b'
+        # Payment / fintech
+        - '\bPaytm\b'
+        - '\bPhonePe\b'
+        - '\bGoogle\s*Pay\b'
+        - '\bGPay\b'
+        - '\bBharat\s*Pe\b'
+        - '\bRazorpay\b'
+        - '\bCRED\b'
+        - '\bNPCI\b'
+        - '\bUPI\b'
+        # Government / telecom
+        - '\bIndia\s*Post\b'
+        - '\bIncome\s*Tax\b'
+        - '\bIT\s*Department\b'
+        - '\bAadhaar\b'
+        - '\bEPFO\b'
+        - '\bIRCTC\b'
+        - '\bJio\b'
+        - '\bAirtel\b'
+        - '\bVodafone\b'
+        - '\bVi\b'
+        - '\bBSNL\b'
+        - '\bTRAI\b'
+        - '\bDoT\b'
+        - '\bRBI\b'
+        # E-commerce
+        - '\bAmazon\b'
+        - '\bFlipkart\b'
+        - '\bMyntra\b'
+        - '\bSwiggy\b'
+        - '\bZomato\b'
+        # Global
+        - '\bMicrosoft\b'
+        - '\bApple\b'
+        - '\bGoogle\b'
+        - '\bWhatsApp\b'
+        - '\bFedEx\b'
+        - '\bDHL\b'
+
+    - id: bait_lure
+      category: bait
+      label: Too-good lure
+      label_hi: "लालच भरा लालच"
+      points: 20
+      patterns:
+        - '\b(?:won|winner|congratulations?|congrats)\b'
+        - '\b(?:prize|reward|cashback|refund|lottery|lucky\s*draw)\b'
+        - '\b(?:free\s*(?:gift|iphone|phone|laptop|money))\b'
+        - '\b(?:job\s*offer|earn\s*(?:from\s*home|daily|lakhs?|crores?))\b'
+        - '\b(?:claim\s*(?:your|now|today))\b'
+        - '\b(?:jeeta|jeet\s*gaye|inam|inaam|muft)\b'
+        - '\b(?:जीता|जीत\s*गये|इनाम|मुफ़्त|मुफ्त|कैशबैक|रिफंड|लॉटरी)\b'
+
+    # ── HOOK ──────────────────────────────────────────────────────────────────
+    - id: hook_pressure
+      category: hook
+      label: Urgency / pressure
+      label_hi: "जल्दबाज़ी/दबाव"
+      points: 15
+      patterns:
+        - '\b(?:immediately|urgent|urgently|right\s*now)\b'
+        - '\b(?:within\s*\d+\s*(?:hour|hr|minute|min)s?)\b'
+        - '\b(?:today|tonight|now\s*only|last\s*chance|act\s*now|limited\s*time)\b'
+        - '\b(?:expir(?:e|es|ing|ed)\s*(?:today|soon|tonight))\b'
+        - '\b(?:turant|fauran|jaldi|abhi|aaj)\b'
+        - '\b(?:तुरंत|फ़ौरन|फौरन|जल्दी|अभी|आज)\b'
+
+    - id: hook_fear
+      category: hook
+      label: Fear / threat
+      label_hi: "डर/धमकी"
+      points: 15
+      patterns:
+        - '\b(?:KYC\b.{0,20}?\b(?:incomplete|expire[ds]?|pending|update|verify|verification))\b'
+        - '\b(?:account\b.{0,25}?\b(?:block(?:ed)?|suspend(?:ed)?|deactivat(?:e|ed)|clos(?:e|ed)|restrict(?:ed)?))\b'
+        - '\b(?:legal\s*action|police\s*complaint|arrest\s*warrant|court\s*notice)\b'
+        - '\b(?:SIM\s*(?:deactivat(?:e|ed)|block(?:ed)?|suspend(?:ed)?))\b'
+        - '\b(?:verify\s*(?:your\s*)?identity|failure\s*to\s*comply)\b'
+        - '\b(?:penalty|fine\s*of|prosecution)\b'
+        - '\b(?:band\s*ho\s*(?:jayega|jayegi|jaega)|block\s*ho|suspend\s*ho)\b'
+        - '\b(?:बंद\s*हो\s*जाएगा|ब्लॉक|निलंबित|कानूनी\s*कार्रवाई)\b'
+
+    # ── ASK ───────────────────────────────────────────────────────────────────
+    - id: ask_link
+      category: ask
+      label: Risky link
+      label_hi: "संदिग्ध लिंक"
+      points: 25
+      # Link detection handled by links.py, not patterns here.
+      # This rule is triggered programmatically.
+      patterns: []
+
+    - id: ask_payment
+      category: ask
+      label: Payment request
+      label_hi: "भुगतान की माँग"
+      points: 30
+      patterns:
+        - '\b(?:pay\s*(?:Rs|₹|INR)?\s*\d+)\b'
+        - '\b(?:(?:Rs|₹|INR)\s*\d+\s*(?:fee|charge|fine|penalty))\b'
+        - '\b(?:fee\s*of\s*(?:Rs|₹|INR)?\s*\d+)\b'
+        - '\b(?:transfer|send)\s*(?:Rs|₹|INR)\s*\d+'
+        - '\b(?:processing\s*fee|shipping\s*fee|delivery\s*charge)\b'
+        - '\b(?:भुगतान|शुल्क|फीस)\b'
+        - '\b(?:paisa|paise)\s*(?:bhej|de|do|send)\b'
+
+    - id: ask_otp
+      category: ask
+      label: OTP / PIN / credential request
+      label_hi: "OTP/PIN/पासवर्ड माँगा"
+      points: 40
+      patterns:
+        - '\b(?:share|send|enter|tell|give|provide|bata|batao|bataye|dein|dijiye|bhej)\b.*\b(?:OTP|PIN|CVV|password|passcode|card\s*number|ATM\s*pin)\b'
+        - '\b(?:OTP|PIN|CVV|password|passcode|card\s*number|ATM\s*pin)\b.*\b(?:share|send|enter|tell|give|provide|bata|batao|bataye|dein|dijiye|bhej)\b'
+        - '\b(?:OTP|पिन|ओटीपी|सीवीवी|पासवर्ड)\b.*\b(?:बताएं|भेजें|दें|बता\s*दो|बता\s*दें)\b'
+        - '\b(?:बताएं|भेजें|दें|बता\s*दो|बता\s*दें)\b.*\b(?:OTP|पिन|ओटीपी|सीवीवी|पासवर्ड)\b'
+
+  # Protective context: if these patterns appear near OTP/PIN, remove that finding
+  protective_context:
+    patterns:
+      - '\b(?:never|do\s*not|don''t|donot|kabhi\s*(?:mat|nahi|nahin))\b.*\b(?:share|tell|give|bata|batao|bataye|dein)\b'
+      - '\b(?:(?:share|tell|give|bata)\s*(?:mat|nahi|nahin|na)\s*(?:kare|karein|karna|karo)?)\b'
+      - '\b(?:कभी\s*(?:मत|नहीं|ना)\b.*\b(?:बताएं|दें|शेयर))\b'
+      - '\b(?:never\s*share)\b'
+
+
+# ── RULEBOOK_MODE ─────────────────────────────────────────────────────────────
+# Organisers' sample scoring rubric
+rulebook:
+  act_now_bonus: 0           # not used in this mode
+  max_score: 100
+  no_ask_cap: 100            # no Bait/Hook/Ask cap
+
+  tiers:
+    low:    [0, 29]
+    medium: [30, 59]
+    high:   [60, 100]
+
+  rules:
+    - id: rb_urgency
+      category: hook
+      label: Fake urgency
+      label_hi: "नकली जल्दबाज़ी"
+      points: 20
+      patterns:
+        - '\b(?:immediately|urgent|urgently|right\s*now)\b'
+        - '\b(?:within\s*\d+\s*(?:hour|hr|minute|min)s?)\b'
+        - '\b(?:today|tonight|now\s*only|last\s*chance|act\s*now|limited\s*time)\b'
+        - '\b(?:turant|fauran|jaldi|abhi|aaj)\b'
+        - '\b(?:तुरंत|फ़ौरन|फौरन|जल्दी|अभी|आज)\b'
+
+    - id: rb_account_threat
+      category: hook
+      label: Account threat
+      label_hi: "खाते की धमकी"
+      points: 15
+      patterns:
+        - '\b(?:KYC\b.{0,20}?\b(?:incomplete|expire[ds]?|pending|update|verify|verification))\b'
+        - '\b(?:account\b.{0,25}?\b(?:block(?:ed)?|suspend(?:ed)?|deactivat(?:e|ed)|clos(?:e|ed)|restrict(?:ed)?))\b'
+        - '\b(?:SIM\s*(?:deactivat(?:e|ed)|block(?:ed)?|suspend(?:ed)?))\b'
+        - '\b(?:band\s*ho\s*(?:jayega|jayegi|jaega)|block\s*ho|suspend\s*ho)\b'
+        - '\b(?:बंद\s*हो\s*जाएगा|ब्लॉक|निलंबित)\b'
+
+    - id: rb_link
+      category: ask
+      label: Suspicious link
+      label_hi: "संदिग्ध लिंक"
+      points: 25
+      patterns: []
+
+    - id: rb_otp
+      category: ask
+      label: OTP request
+      label_hi: "OTP माँगा"
+      points: 40
+      patterns:
+        - '\b(?:share|send|enter|tell|give|provide|bata|batao|bataye|dein|dijiye|bhej)\b.*\b(?:OTP|PIN|CVV|password|passcode|card\s*number|ATM\s*pin)\b'
+        - '\b(?:OTP|PIN|CVV|password|passcode|card\s*number|ATM\s*pin)\b.*\b(?:share|send|enter|tell|give|provide|bata|batao|bataye|dein|dijiye|bhej)\b'
+        - '\b(?:OTP|पिन|ओटीपी|सीवीवी|पासवर्ड)\b.*\b(?:बताएं|भेजें|दें|बता\s*दो|बता\s*दें)\b'
+
+  protective_context:
+    patterns:
+      - '\b(?:never|do\s*not|don''t|donot|kabhi\s*(?:mat|nahi|nahin))\b.*\b(?:share|tell|give|bata|batao|bataye|dein)\b'
+      - '\b(?:never\s*share)\b'
+      - '\b(?:कभी\s*(?:मत|नहीं|ना)\b.*\b(?:बताएं|दें|शेयर))\b'

@@ -1,0 +1,66 @@
+[
+  {
+    "id": "sbi_kyc",
+    "label": "SBI KYC scam",
+    "text": "SBI ALERT: Your KYC is incomplete and your account will be blocked today. Update immediately at http://sbi-kyc-update.example/verify and share the OTP you receive to confirm.",
+    "expected_default": {
+      "score": 100,
+      "raw_score": 120,
+      "tier": "high"
+    },
+    "expected_rulebook": {
+      "score": 100,
+      "tier": "high"
+    }
+  },
+  {
+    "id": "parcel_fee",
+    "label": "India Post parcel fee scam",
+    "text": "INDIA POST: Your parcel is held for an unpaid Rs 25 fee. Pay within 2 hours at indiapost-fee.example/pay.",
+    "expected_default": {
+      "score": 95,
+      "raw_score": 95,
+      "tier": "high"
+    }
+  },
+  {
+    "id": "hinglish_kyc",
+    "label": "Hinglish KYC scam",
+    "text": "Aapka bank account aaj band ho jayega. KYC turant update karein aur OTP bata dein.",
+    "expected_default": {
+      "score": 85,
+      "raw_score": 85,
+      "tier": "high"
+    }
+  },
+  {
+    "id": "class_notice",
+    "label": "Genuine class notice",
+    "text": "Class moved to 3 PM today, Room 204.",
+    "expected_default": {
+      "score": 15,
+      "raw_score": 15,
+      "tier": "low"
+    }
+  },
+  {
+    "id": "genuine_otp",
+    "label": "Genuine OTP SMS",
+    "text": "Your OTP is 482913 for SBI. Never share it with anyone.",
+    "expected_default": {
+      "score": 10,
+      "raw_score": 10,
+      "tier": "low"
+    }
+  },
+  {
+    "id": "bare_link",
+    "label": "Bare shortener link",
+    "text": "Check this: bit.ly/xyz",
+    "expected_default": {
+      "score": 25,
+      "raw_score": 25,
+      "tier": "medium"
+    }
+  }
+]

@@ -1,0 +1,29 @@
+# Known URL shortener domains
+# One per line. Used by link analysis to flag shortened URLs.
+bit.ly
+tinyurl.com
+t.co
+goo.gl
+is.gd
+v.gd
+ow.ly
+buff.ly
+rebrand.ly
+bl.ink
+short.io
+cutt.ly
+shorturl.at
+tiny.cc
+rb.gy
+lnkd.in
+soo.gd
+s.id
+t.ly
+clck.ru
+qr.ae
+adf.ly
+bc.vc
+j.mp
+bitly.com
+shrtco.de
+shorturl.me

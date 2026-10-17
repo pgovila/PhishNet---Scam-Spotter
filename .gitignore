@@ -1,0 +1,44 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Virtual environment
+venv/
+.venv/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Environment
+.env
+
+# Data (generated)
+data/phishnet_stats.db
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Streamlit
+.streamlit/secrets.toml
+
+# Screenshots (generated)
+screenshots/
+
+# Submission PDF (generated)
+PhishNet_Submission.pdf
+
+# Testing
+.pytest_cache/
+.ruff_cache/
+htmlcov/
+.coverage

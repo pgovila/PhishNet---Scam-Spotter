@@ -1,0 +1,110 @@
+# Official Domains for Indian brands/authorities
+# Used by PhishNet link analysis to distinguish legitimate vs spoofed domains.
+# ⚠️  VERIFY BEFORE PRODUCTION — confirm each domain is current and correct.
+
+brands:
+  SBI:
+    - sbi.co.in
+    - onlinesbi.sbi
+    - sbi.co.in
+  HDFC:
+    - hdfcbank.com
+    - hdfcbank.co.in
+  ICICI:
+    - icicibank.com
+  Axis Bank:
+    - axisbank.com
+  Kotak:
+    - kotak.com
+    - kotak811.com
+  PNB:
+    - pnbindia.in
+  Bank of Baroda:
+    - bankofbaroda.in
+  Canara Bank:
+    - canarabank.com
+  Union Bank:
+    - unionbankofindia.co.in
+  BOI:
+    - bankofindia.co.in
+  IDBI:
+    - idbibank.in
+  Yes Bank:
+    - yesbank.in
+  Indian Bank:
+    - indianbank.in
+
+  # Payment / fintech
+  Paytm:
+    - paytm.com
+  PhonePe:
+    - phonepe.com
+  Google Pay:
+    - pay.google.com
+  BharatPe:
+    - bharatpe.com
+  Razorpay:
+    - razorpay.com
+  CRED:
+    - cred.club
+  NPCI:
+    - npci.org.in
+  UPI:
+    - npci.org.in
+
+  # Government / telecom
+  India Post:
+    - indiapost.gov.in
+  Income Tax:
+    - incometax.gov.in
+    - incometaxindia.gov.in
+  Aadhaar:
+    - uidai.gov.in
+  EPFO:
+    - epfindia.gov.in
+  IRCTC:
+    - irctc.co.in
+  Jio:
+    - jio.com
+  Airtel:
+    - airtel.in
+  Vodafone:
+    - myvi.in
+  BSNL:
+    - bsnl.co.in
+  TRAI:
+    - trai.gov.in
+  DoT:
+    - dot.gov.in
+  RBI:
+    - rbi.org.in
+
+  # E-commerce
+  Amazon:
+    - amazon.in
+  Flipkart:
+    - flipkart.com
+  Myntra:
+    - myntra.com
+  Swiggy:
+    - swiggy.com
+  Zomato:
+    - zomato.com
+
+  # Global
+  Microsoft:
+    - microsoft.com
+  Apple:
+    - apple.com
+  Google:
+    - google.com
+    - google.co.in
+  WhatsApp:
+    - whatsapp.com
+  FedEx:
+    - fedex.com
+  DHL:
+    - dhl.com
+
+# Flat set for quick lookup (built at load time by engine)
+# all_official: auto-generated from brands above

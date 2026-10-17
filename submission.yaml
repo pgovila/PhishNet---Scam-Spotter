@@ -1,0 +1,29 @@
+# PhishNet — Submission Metadata
+# Fill in your details before running scripts/build_submission_pdf.py
+
+team:
+  name: "YOUR_TEAM_NAME"
+  members:
+    - name: "Member 1"
+      role: "Full-stack Developer"
+    - name: "Member 2"
+      role: "ML/AI Engineer"
+    - name: "Member 3"
+      role: "UI/UX Designer"
+  hackathon: "SETU 2026 — Forge Realm"
+  problem_statement: "PS1 — Scam Spotter"
+
+# ⚠️  Fill these with REAL URLs before building the PDF.
+# The script will verify each URL is reachable and stop with an error if not.
+demo_video_url: ""    # e.g., https://youtu.be/YOUR_VIDEO_ID
+live_url: ""          # e.g., https://phishnet.streamlit.app
+github_url: "https://github.com/pgovila/PhishNet---Scam-Spotter"
+
+# Paths to screenshots (relative to project root).
+# Capture them with: python scripts/capture_screenshots.py
+screenshots:
+  - screenshots/01_home.png
+  - screenshots/02_analysis_high.png
+  - screenshots/03_analysis_low.png
+  - screenshots/04_hindi.png
+  - screenshots/05_report.png
