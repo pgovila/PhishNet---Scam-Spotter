@@ -281,59 +281,110 @@ def analyse_links(
 
     findings: list[Finding] = []
 
+    institutional_suffixes = ("gov.in", "nic.in", "ac.in", "edu.in", "res.in")
+
     for url in urls:
         reasons: list[str] = []
+        is_high_risk = False
+
+        # Check if domain belongs to an official institution or government/educational body
+        is_official = (
+            url.domain in official_domains
+            or url.suffix in institutional_suffixes
+            or any(url.full_domain.endswith("." + sfx) for sfx in institutional_suffixes)
+        )
 
         # 1. Is it a shortener?
         if url.domain in shorteners or url.full_domain in shorteners:
             reasons.append("Shortened URL — hides the real destination")
+            is_high_risk = True
 
         # 2. Raw IP address?
         if url.is_ip:
             reasons.append("Raw IP address — legitimate services use domain names")
+            is_high_risk = True
 
-        # 3. HTTP without TLS?
+        # 3. Homoglyph characters?
+        if _has_homoglyphs(url.full_domain):
+            reasons.append("Contains look-alike (homoglyph) characters in domain")
+            is_high_risk = True
+
+        # 4. Brand impersonation (only if not official)?
+        if not is_official:
+            for brand_token, off_domains in brand_tokens.items():
+                if brand_token in url.full_domain.replace(".", "").replace("-", ""):
+                    if url.domain not in official_domains:
+                        reasons.append(
+                            f"Contains '{brand_token}' but is not an official domain "
+                            f"(official: {', '.join(off_domains[:2])})"
+                        )
+                        is_high_risk = True
+                        break
+
+            # 5. Edit distance from official domain?
+            for off_domain in official_domains:
+                if _levenshtein(url.domain, off_domain) <= 2 and url.domain != off_domain:
+                    reasons.append(
+                        f"Very similar to official domain '{off_domain}' (possible typosquatting)"
+                    )
+                    is_high_risk = True
+                    break
+
+            # 6. Odd TLD?
+            if url.suffix in _ODD_TLDS:
+                reasons.append(f"Unusual TLD '.{url.suffix}' — commonly abused")
+                is_high_risk = True
+
+            # 7. Mixed-script IDN?
+            try:
+                url.full_domain.encode("ascii")
+            except UnicodeEncodeError:
+                reasons.append("Internationalised domain — may be a look-alike attack")
+                is_high_risk = True
+
+        # 8. HTTP without TLS?
         if url.scheme == "http":
             reasons.append("Uses HTTP without encryption (no HTTPS)")
 
-        # 4. Homoglyph characters?
-        if _has_homoglyphs(url.full_domain):
-            reasons.append("Contains look-alike (homoglyph) characters in domain")
-
-        # 5. Is it an official domain?
-        if url.domain in official_domains:
-            # This is an official domain — not risky
+        # If it's an official domain and no high-risk flags exist:
+        if is_official and not is_high_risk:
+            # If HTTPS, completely safe:
+            if url.scheme != "http":
+                continue
+            # If HTTP, only flag unencrypted transport (5 points, low warning)
+            findings.append(
+                Finding(
+                    rule_id=link_rule_id,
+                    category="ask",
+                    label="Unencrypted link (HTTP)",
+                    label_hi="असुरक्षित लिंक (HTTP)",
+                    points=5,
+                    matched_text=url.raw,
+                    span=url.span,
+                    reason="Official domain but uses unencrypted HTTP without HTTPS.",
+                    reason_hi="आधिकारिक संस्थागत डोमेन है लेकिन HTTPS एन्क्रिप्शन के बिना HTTP का उपयोग करता है।",
+                )
+            )
             continue
 
-        # 6. Brand impersonation?
-        for brand_token, off_domains in brand_tokens.items():
-            if brand_token in url.full_domain.replace(".", "").replace("-", ""):
-                if url.domain not in official_domains:
-                    reasons.append(
-                        f"Contains '{brand_token}' but is not an official domain "
-                        f"(official: {', '.join(off_domains[:2])})"
-                    )
-                    break
-
-        # 7. Edit distance from official domain?
-        for off_domain in official_domains:
-            if _levenshtein(url.domain, off_domain) <= 2 and url.domain != off_domain:
-                reasons.append(
-                    f"Very similar to official domain '{off_domain}' (possible typosquatting)"
+        # If non-official, but ONLY flagged for missing HTTPS (no other threat signals)
+        if reasons == ["Uses HTTP without encryption (no HTTPS)"]:
+            findings.append(
+                Finding(
+                    rule_id=link_rule_id,
+                    category="ask",
+                    label="Unencrypted link (HTTP)",
+                    label_hi="असुरक्षित लिंक (HTTP)",
+                    points=5,
+                    matched_text=url.raw,
+                    span=url.span,
+                    reason="Uses HTTP without encryption (no HTTPS).",
+                    reason_hi="बिना एन्क्रिप्शन के HTTP का उपयोग करता है (कोई HTTPS नहीं)।",
                 )
-                break
+            )
+            continue
 
-        # 8. Odd TLD?
-        if url.suffix in _ODD_TLDS:
-            reasons.append(f"Unusual TLD '.{url.suffix}' — commonly abused")
-
-        # 9. Mixed-script IDN?
-        try:
-            url.full_domain.encode("ascii")
-        except UnicodeEncodeError:
-            reasons.append("Internationalised domain — may be a look-alike attack")
-
-        # If we found any reason, it's risky
+        # If high-risk threat indicators are present
         if reasons:
             findings.append(
                 Finding(
@@ -345,6 +396,7 @@ def analyse_links(
                     matched_text=url.raw,
                     span=url.span,
                     reason="; ".join(reasons),
+                    reason_hi="संदिग्ध या भ्रामक वेब लिंक: " + "; ".join(reasons),
                 )
             )
 

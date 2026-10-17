@@ -4,7 +4,7 @@ POST /v1/analyze   Analyse a message and return JSON findings.
 GET  /health       Health check endpoint.
 
 Authentication via X-API-Key header. Per-key rate limiting.
-Shares the same engine as the Streamlit UI.
+Shares the exact same engine as the Streamlit UI.
 """
 
 from __future__ import annotations
@@ -22,15 +22,15 @@ from fastapi.middleware.cors import CORSMiddleware
 # pyrefly: ignore[missing-import]
 from pydantic import BaseModel, Field
 
-from phishnet.engine import analyse, normalise
-from phishnet.links import analyse_links
+from phishnet.engine import analyse, load_rules, normalise
+from phishnet.links import analyse_links, extract_urls
 
 # ── App ───────────────────────────────────────────────────────────────────────
 
 app = FastAPI(
     title="PhishNet API",
     description="Scam message analysis API — Spot the bait. See the hook. Skip the ask.",
-    version="1.0.0",
+    version="1.1.0",
     docs_url="/docs",
     redoc_url="/redoc",
 )
@@ -45,7 +45,7 @@ app.add_middleware(
 # ── API Key management ────────────────────────────────────────────────────────
 
 # Keys loaded from env: PHISHNET_API_KEYS (comma-separated)
-# Example: PHISHNET_API_KEYS=key1,key2,key3
+# Enforce authentication if PHISHNET_REQUIRE_AUTH=1 or keys are specified
 
 
 def _get_valid_keys() -> set[str]:
@@ -59,11 +59,22 @@ def _get_valid_keys() -> set[str]:
 def _validate_api_key(api_key: str | None) -> None:
     """Validate the API key."""
     valid_keys = _get_valid_keys()
+    require_auth = os.environ.get("PHISHNET_REQUIRE_AUTH") == "1"
+
     if not valid_keys:
-        # No keys configured — allow all (dev mode)
+        if require_auth:
+            raise HTTPException(
+                status_code=401,
+                detail="Authentication required: PHISHNET_REQUIRE_AUTH is set but no valid keys are configured.",
+            )
+        # Development mode — allow unauthenticated requests with anonymous rate limit
         return
+
     if not api_key or api_key not in valid_keys:
-        raise HTTPException(status_code=401, detail="Invalid or missing API key")
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid or missing API key. Provide a valid key in the X-API-Key header.",
+        )
 
 
 # ── Rate limiting ─────────────────────────────────────────────────────────────
@@ -90,6 +101,7 @@ class AnalyzeRequest(BaseModel):
 
     text: str = Field(..., min_length=1, max_length=5000, description="Message text to analyse")
     mode: str | None = Field(None, description="Scoring mode: 'default' or 'rulebook'")
+    enrich: bool = Field(False, description="Whether to run online threat intelligence enrichment")
 
 
 class FindingResponse(BaseModel):
@@ -98,11 +110,13 @@ class FindingResponse(BaseModel):
     rule_id: str
     category: str
     label: str
+    label_hi: str = ""
     points: int
     matched_text: str
     span_start: int
     span_end: int
     reason: str
+    reason_hi: str = ""
     protective: bool
 
 
@@ -135,7 +149,7 @@ async def analyze_message(
     """Analyse a suspicious message for scam indicators.
 
     Returns scored findings, risk tier, and recommended next steps.
-    The rules engine sets the score — AI never does.
+    The rules engine sets the score deterministically — AI never sets or influences the score.
     """
     _validate_api_key(x_api_key)
     _check_rate_limit(x_api_key or "anonymous")
@@ -155,8 +169,6 @@ async def analyze_message(
     norm_text = normalise(text)
 
     # Link analysis
-    from phishnet.engine import load_rules
-
     cfg = load_rules()
     mode_cfg = cfg.get(mode, cfg["default"])
     link_rule = next(
@@ -172,7 +184,26 @@ async def analyze_message(
         link_points=link_points,
     )
 
-    result = analyse(text, link_findings=link_findings, mode=mode)
+    # Optional online enrichment (Safe Browsing, VirusTotal, URLhaus)
+    enrichment_results = None
+    if body.enrich:
+        urls = extract_urls(norm_text)
+        if urls:
+            try:
+                from phishnet.enrich import enrich_urls
+
+                raw_urls = [u.raw for u in urls]
+                enrichment_results = enrich_urls(raw_urls)
+            except Exception:
+                pass  # Enrichment failure never breaks core analysis
+
+    # Both API and UI run the exact same analyse logic
+    result = analyse(
+        text,
+        link_findings=link_findings,
+        enrichment_results=enrichment_results,
+        mode=mode,
+    )
 
     return AnalyzeResponse(
         findings=[
@@ -180,11 +211,13 @@ async def analyze_message(
                 rule_id=f.rule_id,
                 category=f.category,
                 label=f.label,
+                label_hi=f.label_hi,
                 points=f.points,
                 matched_text=f.matched_text,
                 span_start=f.span[0],
                 span_end=f.span[1],
                 reason=f.reason,
+                reason_hi=f.reason_hi,
                 protective=f.protective,
             )
             for f in result.findings

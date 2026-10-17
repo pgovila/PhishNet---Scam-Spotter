@@ -16,15 +16,15 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy application
 COPY . .
 
-# Create data directory
-RUN mkdir -p data
+# Create data directory and permissions
+RUN mkdir -p data && chmod +x scripts/entrypoint.sh
 
-# Expose ports
+# Expose ports: 8501 (Streamlit UI), 8000 (FastAPI REST service)
 EXPOSE 8501 8000
 
-# Health check
+# Health check (checks Streamlit or FastAPI depending on active mode)
 HEALTHCHECK --interval=30s --timeout=10s \
-    CMD python -c "import requests; requests.get('http://localhost:8501/_stcore/health')" || exit 1
+    CMD python -c "import requests; requests.get('http://localhost:8501/_stcore/health' if not requests.get('http://localhost:8000/health').ok else 'http://localhost:8000/health')" || exit 1
 
-# Default: run Streamlit
-CMD ["streamlit", "run", "app.py", "--server.port=8501", "--server.address=0.0.0.0"]
+# Default entrypoint supports APP_SERVICE=streamlit, api, or both
+ENTRYPOINT ["bash", "scripts/entrypoint.sh"]

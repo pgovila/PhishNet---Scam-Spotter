@@ -329,14 +329,18 @@ def build_pdf() -> None:
     """
     story.append(Paragraph(arch_text, body_style))
 
-    story.append(Paragraph("<b>Business Model</b>", body_style))
+    story.append(Paragraph("<b>Business Model (Pilot Assumptions)</b>", body_style))
     biz_data = [
-        ["Tier", "Price", "Features"],
+        ["Tier", "Price (Pilot Assumption)", "Features"],
         ["Free", "₹0", "Unlimited personal analysis, all rules"],
-        ["Family", "₹99/mo", "WhatsApp bot, family dashboard, alerts"],
-        ["Institution", "₹4,999/mo", "API access, analytics dashboard, custom rules"],
+        ["Family (Roadmap)", "₹99/mo", "WhatsApp bot, family dashboard, alerts"],
+        [
+            "Institution (Pilot)",
+            "₹4,999/mo",
+            "API access, threat telemetry dashboard, custom rules",
+        ],
     ]
-    biz_table = Table(biz_data, colWidths=[3 * cm, 3 * cm, 8 * cm])
+    biz_table = Table(biz_data, colWidths=[3.2 * cm, 4.0 * cm, 7.8 * cm])
     biz_table.setStyle(
         TableStyle(
             [
@@ -344,13 +348,19 @@ def build_pdf() -> None:
                 ("TEXTCOLOR", (0, 0), (-1, 0), TEXT_WHITE),
                 ("TEXTCOLOR", (0, 1), (-1, -1), TEXT_WHITE),
                 ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#333")),
-                ("FONTSIZE", (0, 0), (-1, -1), 10),
+                ("FONTSIZE", (0, 0), (-1, -1), 9),
                 ("TOPPADDING", (0, 0), (-1, -1), 5),
                 ("BOTTOMPADDING", (0, 0), (-1, -1), 5),
             ]
         )
     )
     story.append(biz_table)
+    story.append(
+        Paragraph(
+            "<font size=8 color='#888888'>*Pricing tiers reflect pilot design assumptions and are subject to commercial validation during campus/institutional beta trials.</font>",
+            body_style,
+        )
+    )
 
     story.append(Paragraph("<b>Roadmap</b>", body_style))
     story.append(
