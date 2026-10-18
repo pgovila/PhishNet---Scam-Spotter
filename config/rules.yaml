@@ -98,6 +98,30 @@ default:
         # Hindi brands
         - '\b(?:एसबीआई|एचडीएफसी|आईसीआईसीआई|पेटीएम|फोनपे|गूगल\s*पे|सीबीआई|ईडी|पुलिस|नेटफ्लिक्स|हॉटस्टार)\b'
 
+    - id: bait_authority
+      category: bait
+      label: Law enforcement / statutory authority
+      label_hi: "पुलिस/सरकारी प्राधिकरण का दुरुपयोग"
+      points: 20
+      reason: "Impersonates law enforcement, telecom regulator, or court authorities to invoke fear and compliance."
+      reason_hi: "घबराहट और तत्काल अनुपालन पैदा करने के लिए पुलिस, दूरसंचार प्राधिकरण (TRAI/DoT), या न्यायालय का झूठा रोब दिखाया गया है।"
+      patterns:
+        - '\b(?:Police\s*(?:alert|notice|officer|headquarters|station|department|dept)|Cyber\s*Cell|CBI|ED|NCB|Crime\s*Branch)\b'
+        - '\b(?:TRAI|DoT|Department\s*of\s*Telecommunications|Customs\s*Department|Income\s*Tax\s*Office|Court\s*Summons)\b'
+        - '\b(?:पुलिस|सीबीआई|क्राइम\s*ब्रांच|अदालत|कोर्ट\s*नोटिस|ट्राई)\b'
+
+    - id: bait_subsidy
+      category: bait
+      label: Government scheme / subsidy lure
+      label_hi: "सरकारी योजना/सब्सिडी का झांसा"
+      points: 20
+      reason: "Lures victims with fake government subsidies (e.g. LPG, PM-Kisan, PM-Ujjwala, free electricity) to click malicious links."
+      reason_hi: "फर्जी सरकारी योजना (जैसे एलपीजी सब्सिडी, किसान सम्मान, उज्ज्वला) का लालच देकर व्यक्तिगत जानकारी चुराने का प्रयास।"
+      patterns:
+        - '\b(?:LPG\s*(?:subsidy|cylinder|connection|booking)|PM\s*Ujjwala|Ujjwala\s*Yojana)\b'
+        - '\b(?:PM\s*Kisan|Kisan\s*Samman|subsidy\s*credited|gas\s*subsidy)\b'
+        - '\b(?:एलपीजी\s*सब्सिडी|उज्ज्वला\s*योजना|पीएम\s*किसान|गैस\s*सब्सिडी)\b'
+
     - id: bait_lure
       category: bait
       label: Too-good lure / fake offer
@@ -133,6 +157,7 @@ default:
         - '\b(?<!delivered\s)(?<!arriving\s)(?<!delivery\s)(?:today|tonight|now\s*only|last\s*chance|act\s*now|limited\s*time)\b'
         - '\b(?:today\s+only|valid\s+today|expires?\s+today|pay\s+today|last\s+day\s+today|act\s+today)\b'
         - '\b(?:expir(?:e|es|ing|ed)\s*(?:today|soon|tonight))\b'
+        - '\b(?:in\s*\d+\s*(?:hour|hr|minute|min)s?)\b'
         - '\b(?:turant|fauran|jaldi|abhi)\b'
         - '\b(?:aaj\s*hi|aaj\s*tak|aaj\s*ke\s*andar|aaj\s*raat)\b'
         - '\b(?:तुरंत|फ़ौरन|फौरन|जल्दी|अभी|आज\s*ही|आज\s*तक|आज\s*रात)\b'
@@ -149,9 +174,10 @@ default:
         - '\b(?:account\b.{0,30}?\b(?:block(?:ed)?|suspend(?:ed)?|deactivat(?:e|ed)|clos(?:e|ed)|restrict(?:ed)?))\b'
         - '\b(?:legal\s*action|police\s*complaint|arrest\s*warrant|court\s*notice)\b'
         - '\b(?:SIM\b.{0,25}?\b(?:deactivat(?:e|ed)|block(?:ed)?|suspend(?:ed)?|KYC))\b'
+        - '\b(?:number\b.{0,30}?\b(?:disconnect(?:ed)?|suspend(?:ed)?|block(?:ed)?))\b'
         - '\b(?:electricity\b.{0,30}?\b(?:disconnect(?:ed)?|cut\s*off|power\s*cut|tonight|unpaid\s*bill))\b'
         - '\b(?:subscription\b.{0,25}?\b(?:suspended|cancelled|expired|on\s*hold)|membership\s*on\s*hold)\b'
-        - '\b(?:digital\s*arrest|digital\s*custody|video\s*call\s*(?:police|cbi|investigation)|contraband|drugs?\s*found|money\s*laundering)\b'
+        - '\b(?:digital\s*arrest|digital\s*custody|(?:join|attend)\s*(?:the\s*)?(?:video\s*call|skype|call)|you(?:''ll|\s*will)\s*be\s*arrested|arrested)\b'
         - '\b(?:verify\s*(?:your\s*)?identity|failure\s*to\s*comply)\b'
         - '\b(?:penalty|fine\s*of|prosecution)\b'
         - '\b(?:band\s*ho\s*(?:jayega|jayegi|jaega)|block\s*ho|suspend\s*ho|bijli\s*kat)\b'
@@ -232,6 +258,34 @@ default:
         - '\b(?:download|install|update)\b.{0,30}?\b(?:\.apk|apk\s*file|app\s*from\s*link)\b'
         - '\b(?:sbi|pnb|hdfc|kyc|challan|electricity|bill|pan|aadhaar)\w*\.apk\b'
         - '\b(?:\.apk|एपीके|एप\s*डाउनलोड\s*करें)\b'
+
+    - id: ask_callback
+      category: ask
+      label: Callback scam / cancellation desk trap
+      label_hi: "कॉल बैक झांसा / फर्जी हेल्पलाइन नंबर"
+      points: 35
+      reason: "Instructs you to call an unverified mobile number to 'cancel' a fake transaction, avoid arrest, or resolve a fake issue, connecting you directly to a scammer."
+      reason_hi: "फर्जी लेनदेन रद्द करने, गिरफ्तारी से बचने या समस्या सुलझाने के बहाने किसी अज्ञात नंबर पर कॉल करने को कहा गया है, जिससे आप सीधे धोखेबाज से जुड़ जाते हैं।"
+      patterns:
+        - '\b(?:call\s*(?:this\s*number|on|us|at|desk)?\s*(?:to\s*cancel|to\s*stop|if\s*not\s*you|to\s*dispute))\b'
+        - '\b(?:to\s*cancel\s*(?:call|contact)|to\s*stop\s*this\s*(?:debit|transaction|charge))\b'
+        - '\b(?:call\s*(?:customer\s*care|helpdesk|support|officer|executive)?\s*at\s*(?:\+91[\s-]?)?[6-9]\d{9})\b'
+        - '\b(?:call\s*(?:\+91[\s-]?)?[6-9]\d{9}\b.{0,40}?\b(?:cancel|stop|verify|dispute))\b'
+        - '\b(?:call\b.{0,50}?\b(?:to\s*cancel|cancel\s*this|stop\s*this))\b'
+        - '\b(?:cancel\s*karne\s*ke\s*liye\s*call|कॉल\s*करें\s*रद्द\s*करने\s*के\s*लिए)\b'
+
+    - id: ask_group_join
+      category: ask
+      label: Invitation to join private chat group
+      label_hi: "संदिग्ध वॉट्सऐप/टेलीग्राम ग्रुप से जुड़ने का न्योता"
+      points: 25
+      reason: "Directs you to join a private WhatsApp or Telegram group for part-time tasks, investments, or 'digital arrest' procedures, isolating you from help."
+      reason_hi: "पार्ट-टाइम काम, निवेश या पूछताछ के लिए किसी निजी वॉट्सऐप या टेलीग्राम ग्रुप से जुड़ने को कहा गया है, जहाँ से ठगी का जाल शुरू होता है।"
+      patterns:
+        - '\b(?:join\s*(?:our\s*)?(?:WhatsApp|Telegram)\s*(?:group|channel|chat|link))\b'
+        - '\b(?:join\s*(?:the\s*)?(?:group|channel)\s*(?:via|on|through)\s*(?:WhatsApp|Telegram)?)\b'
+        - '\b(?:WhatsApp\s*group\s*join|Telegram\s*group\s*join)\b'
+        - '\b(?:वॉट्सऐप\s*ग्रुप|टेलीग्राम\s*ग्रुप|ग्रुप\s*ज्वाइन)\b'
 
   # Protective context: if these patterns appear in the same sentence as OTP/PIN, void that finding
   protective_context:

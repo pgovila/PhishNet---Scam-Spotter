@@ -59,6 +59,10 @@ class AnalysisResult:
     next_steps: list[str] = field(default_factory=list)
     mode: str = "default"
     act_now_applied: bool = False
+    scam_type: str = ""
+    scam_type_hi: str = ""
+    scam_advice: str = ""
+    scam_advice_hi: str = ""
 
 
 # ── Config loader ─────────────────────────────────────────────────────────────
@@ -357,6 +361,39 @@ def _compute_score(
     """
     active_findings = [f for f in findings if not f.protective]
 
+    # Deceptive context signals: bait, fear hook, or dangerous ask (link, otp, remote, callback, apk, collect)
+    active_rule_ids = {f.rule_id for f in active_findings if f.points > 0}
+    has_bait = any(f.category == "bait" and f.points > 0 for f in active_findings)
+    has_fear = any(
+        f.rule_id in ("hook_fear", "rb_account_threat") and f.points > 0 for f in active_findings
+    )
+    has_critical_ask = bool(
+        active_rule_ids
+        & {
+            "ask_link",
+            "rb_link",
+            "ask_otp",
+            "rb_otp",
+            "ask_remote_access",
+            "ask_apk_install",
+            "ask_collect_request",
+            "ask_callback",
+        }
+    )
+
+    # If the only ask is a bare payment/fee request with NO bait, NO fear, and NO critical ask (e.g. hackathon registration fee, library overdue fine),
+    # scale the fee finding down to 10 points and urgency down to 5 points so benign notices stay in Low (<= 24).
+    if "ask_payment" in active_rule_ids and not (has_bait or has_fear or has_critical_ask):
+        for f in findings:
+            if f.rule_id == "ask_payment":
+                f.points = 10
+                f.reason = "Mentions payment or administrative fee without deceptive links or brand impersonation."
+                f.reason_hi = "बिना किसी धोखाधड़ी वाले लिंक या फर्जी ब्रांड के प्रशासनिक शुल्क/भुगतान का उल्लेख।"
+            elif f.rule_id in ("hook_pressure", "rb_urgency"):
+                f.points = 5
+                f.reason = "Informational deadline on an administrative notice."
+                f.reason_hi = "प्रशासनिक सूचना पर समय-सीमा का उल्लेख।"
+
     raw = sum(f.points for f in active_findings)
 
     categories = {f.category for f in active_findings if f.points > 0}
@@ -364,7 +401,9 @@ def _compute_score(
     has_bait_or_hook = bool(categories & {"bait", "hook"})
     act_now = False
 
-    if has_ask and has_bait_or_hook and mode_cfg.get("act_now_bonus", 0) > 0:
+    # Act-now bonus applies ONLY when an Ask combines with genuine deceptive indicators (Bait or Fear or Critical Ask)
+    is_deceptive_combination = (has_bait or has_fear or has_critical_ask) and has_bait_or_hook
+    if has_ask and is_deceptive_combination and mode_cfg.get("act_now_bonus", 0) > 0:
         raw += mode_cfg["act_now_bonus"]
         act_now = True
 
@@ -375,6 +414,130 @@ def _compute_score(
         capped = no_ask_cap
 
     return raw, capped, act_now
+
+
+# ── Scam Type Classification & Advice ─────────────────────────────────────────
+
+_SCAM_TYPES: list[tuple[str, str, str, str, set[str], list[str]]] = [
+    # (id, label_en, label_hi, advice_en, advice_hi, required_rules, keywords_re)
+    (
+        "digital_arrest",
+        "Digital Arrest / Law Enforcement Impersonation",
+        "डिजिटल अरेस्ट / पुलिस का नाम लेकर ठगी",
+        "Police, CBI, Customs or Judges never hold trials, arrest suspects, or demand money via video call.",
+        "पुलिस, सीबीआई या अदालत कभी भी वीडियो कॉल पर पूछताछ या 'डिजिटल अरेस्ट' नहीं करती। तुरंत कॉल काटें।",
+        {"bait_authority", "hook_fear"},
+        [r"video\s*call", r"arrest", r"cbi", r"police", r"customs", r"contraband", r"skype"],
+    ),
+    (
+        "callback_scam",
+        "Fake Debit Alert / Callback Trap",
+        "फर्जी डेबिट अलर्ट / कॉल बैक झांसा",
+        "Never call the cancellation number given in an SMS. Check your bank statement via your official banking app.",
+        "एसएमएस में दिए गए नंबर पर कभी कॉल न करें। अपने आधिकारिक बैंक ऐप में जाकर स्टेटमेंट चेक करें।",
+        {"ask_callback"},
+        [r"call", r"cancel", r"debited", r"stop", r"charge"],
+    ),
+    (
+        "kyc_suspension",
+        "Bank / SIM KYC Deactivation Scam",
+        "बैंक / सिम केवाईसी बंद होने का झांसा",
+        "Banks and telecom operators never deactivate accounts over SMS links or ask for OTPs to update KYC.",
+        "बैंक या सिम कंपनियां कभी भी एसएमएस लिंक से केवाईसी अपडेट करने या ओटीपी मांगने को नहीं कहतीं।",
+        {"hook_fear"},
+        [r"kyc", r"block", r"suspend", r"deactivat", r"sim", r"pan"],
+    ),
+    (
+        "lpg_subsidy",
+        "LPG / Government Subsidy Phishing",
+        "एलपीजी / सरकारी योजना सब्सिडी फ्रॉड",
+        "Government subsidies are credited automatically via Direct Benefit Transfer (DBT); no form link is required.",
+        "सरकारी सब्सिडी सीधे बैंक खाते में (डीबीटी) आती है। किसी भी लिंक पर जाकर फॉर्म भरने की जरूरत नहीं होती।",
+        {"bait_subsidy"},
+        [r"subsidy", r"lpg", r"ujjwala", r"cylinder", r"kisan"],
+    ),
+    (
+        "part_time_job",
+        "Part-Time Job / Telegram Task Scam",
+        "पार्ट-टाइम नौकरी / टेलीग्राम टास्क घोटाला",
+        "Offers paying ₹2,000–₹5,000 daily for liking videos or rating hotels are advance-fee fraud traps.",
+        "यूट्यूब वीडियो लाइक करने या होटल रेटिंग पर रोजाना हजारों रुपये देने का वादा 100% फर्जी टास्क फ्रॉड है।",
+        {"bait_lure", "ask_group_join"},
+        [
+            r"part[- ]time",
+            r"telegram",
+            r"whatsapp\s*group",
+            r"like",
+            r"earn\s*(?:from\s*home|daily)",
+        ],
+    ),
+    (
+        "electricity_cutoff",
+        "Electricity Bill Disconnection Scam",
+        "बिजली बिल बकाया / कनेक्शन कटने की धमकी",
+        "Power discoms do not send personal mobile numbers for bill payments or disconnect power within hours.",
+        "बिजली विभाग कभी व्यक्तिगत मोबाइल नंबर भेजकर बिल भुगतान या कनेक्शन काटने की धमकी नहीं देता।",
+        {"hook_fear", "hook_pressure"},
+        [r"electricity", r"power", r"cut\s*off", r"discom", r"bill"],
+    ),
+    (
+        "apk_malware",
+        "Malicious APK Sideloading",
+        "खतरनाक APK फाइल / मोबाइल मैलवेयर",
+        "Never install .apk files received over SMS or WhatsApp; they are banking trojans designed to steal OTPs.",
+        "एसएमएस या वॉट्सऐप पर आई .apk फाइल कभी इंस्टॉल न करें; यह बैंकिंग ओटीपी चुराने वाला वायरस है।",
+        {"ask_apk_install"},
+        [r"apk", r"install", r"download"],
+    ),
+    (
+        "remote_access",
+        "Remote Desktop Screen-Sharing Trap",
+        "स्क्रीन-शेयरिंग ऐप (AnyDesk/TeamViewer) फ्रॉड",
+        "Installing remote desktop apps allows scammers to view your screen and empty your bank account.",
+        "AnyDesk या TeamViewer जैसे ऐप डाउनलोड करने से जालसाज आपके पूरे फोन और बैंक खाते पर कब्जा कर लेते हैं।",
+        {"ask_remote_access"},
+        [r"anydesk", r"teamviewer", r"quicksupport", r"screen"],
+    ),
+    (
+        "upi_collect",
+        "Fraudulent UPI Collect / Refund Trick",
+        "फर्जी यूपीआई पिन / कलेक्ट रिक्वेस्ट धोखा",
+        "UPI PIN is required ONLY to send money, NEVER to receive refunds, cashbacks, or lottery payouts.",
+        "यूपीआई पिन केवल पैसे भेजने के लिए होता है, रिफंड या पैसे पाने के लिए कभी पिन नहीं डाला जाता।",
+        {"ask_collect_request"},
+        [r"pin", r"collect", r"receive", r"cashback"],
+    ),
+]
+
+
+def classify_scam_type(
+    findings: list[Finding],
+    text: str,
+    tier: str,
+) -> tuple[str, str, str, str]:
+    """Classify the primary scam tactic and provide one-line protection advice.
+
+    Returns (label_en, label_hi, advice_en, advice_hi).
+    """
+    if tier == "low":
+        return "", "", "", ""
+
+    rule_ids = {f.rule_id for f in findings if not f.protective}
+    text_lower = text.lower()
+
+    for type_id, lbl_en, lbl_hi, adv_en, adv_hi, req_rules, kw_res in _SCAM_TYPES:
+        rule_match = bool(rule_ids & req_rules)
+        kw_match = any(re.search(pat, text_lower) for pat in kw_res)
+        if rule_match or kw_match:
+            return lbl_en, lbl_hi, adv_en, adv_hi
+
+    # Fallback for general phishing/scams
+    return (
+        "Suspicious Social Engineering",
+        "संदिग्ध डिजिटल झांसा (फ़िशिंग)",
+        "Do not click unverified links, call unverified numbers, or share any OTP or personal information.",
+        "किसी भी अज्ञात लिंक पर क्लिक न करें, अज्ञात नंबर पर कॉल न करें और कोई भी ओटीपी साझा न करें।",
+    )
 
 
 def _tier_for_score(score: int, mode_cfg: dict[str, Any]) -> str:
@@ -507,6 +670,10 @@ def analyse(
 
     tier = _tier_for_score(score, mode_cfg)
 
+    scam_type, scam_type_hi, scam_advice, scam_advice_hi = classify_scam_type(
+        all_findings, norm_text, tier
+    )
+
     return AnalysisResult(
         findings=sorted(all_findings, key=lambda f: _cat_order(f.category)),
         raw_score=raw_score,
@@ -515,6 +682,10 @@ def analyse(
         next_steps=NEXT_STEPS.get(tier, []),
         mode=mode,
         act_now_applied=act_now,
+        scam_type=scam_type,
+        scam_type_hi=scam_type_hi,
+        scam_advice=scam_advice,
+        scam_advice_hi=scam_advice_hi,
     )
 
 

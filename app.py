@@ -11,6 +11,7 @@ import html
 import json
 import logging
 import os
+import re
 import sqlite3
 import time
 from datetime import datetime, timezone
@@ -1334,10 +1335,22 @@ def main() -> None:
             if ocr_text:
                 st.success(f"Extracted {len(ocr_text)} characters from screenshot")
                 user_input = ocr_text
-            else:
                 st.warning(
                     "Could not extract text from screenshot. Please paste the text manually."
                 )
+
+        # Optional SMS Header / Sender Number input
+        sender_id = st.text_input(
+            "📱 "
+            + (
+                "एसएमएस हेडर या भेजने वाले का नंबर (वैकल्पिक)"
+                if lang == "hi"
+                else "SMS Sender Header or Phone Number (Optional)"
+            ),
+            placeholder="e.g. +91 9876543210 or VM-SBIINB",
+            help="Registered banks in India use 6-character alphabetic sender headers (e.g. VK-HDFCBK, AX-SBINB). Personal 10-digit mobile numbers claiming to represent banks or police are spoofed.",
+            key="sender_id_input",
+        )
 
         # ── Analyse button ────────────────────────────────────────────────
         if st.button(t("analyse_btn", lang), type="primary", use_container_width=True):
@@ -1393,6 +1406,29 @@ def main() -> None:
                     except Exception:
                         pass
 
+                # Check sender header spoofing (if provided)
+                if sender_id and sender_id.strip():
+                    sid = sender_id.strip()
+                    # If sender is a 10-digit mobile number (+91 or plain)
+                    clean_sid = re.sub(r"[\s+-]", "", sid)
+                    is_personal_mobile = (len(clean_sid) == 10 and clean_sid.isdigit()) or (
+                        len(clean_sid) == 12 and clean_sid.startswith("91")
+                    )
+                    if is_personal_mobile:
+                        # Append sender header spoof finding
+                        spoof_finding = Finding(
+                            rule_id="bait_sender_spoof",
+                            category="bait",
+                            label="Unregistered mobile sender spoofing authority",
+                            label_hi="व्यक्तिगत मोबाइल नंबर से संस्था का ढोंग",
+                            points=20,
+                            matched_text=sid,
+                            span=(0, 0),
+                            reason=f"Message arrived from personal phone number ({sid}). Genuine Indian banks and government bodies use registered TRAI alpha-headers (e.g. VK-HDFCBK, AX-SBINB), never personal 10-digit SIMs.",
+                            reason_hi=f"संदेश व्यक्तिगत मोबाइल नंबर ({sid}) से भेजा गया है। असली बैंक और सरकारी विभाग कभी 10-अंकीय मोबाइल नंबर से अलर्ट नहीं भेजते।",
+                        )
+                        link_findings.append(spoof_finding)
+
                 # Core analysis (unified with optional enrichment)
                 result = analyse(
                     text,
@@ -1436,6 +1472,43 @@ def main() -> None:
                     """,
                         unsafe_allow_html=True,
                     )
+
+            # Scam Type Classification Banner
+            if result.scam_type:
+                scam_lbl = (
+                    result.scam_type_hi
+                    if lang == "hi" and result.scam_type_hi
+                    else result.scam_type
+                )
+                scam_adv = (
+                    result.scam_advice_hi
+                    if lang == "hi" and result.scam_advice_hi
+                    else result.scam_advice
+                )
+                st.markdown(
+                    f"""
+                    <div class="phishnet-card" style="border-left: 4px solid #F59E0B; margin-top: 14px; background: rgba(245, 158, 11, 0.08);">
+                        <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <span style="font-size: 1.25rem;">⚠️</span>
+                                <div>
+                                    <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; color: #F59E0B; font-weight: 800;">
+                                        {"पहचाना गया घोटाला प्रकार" if lang == "hi" else "Identified Scam Pattern"}
+                                    </div>
+                                    <div style="font-size: 1.05rem; font-weight: 700; color: #F8FAFC;">{html.escape(scam_lbl)}</div>
+                                </div>
+                            </div>
+                            <span style="font-size: 0.75rem; background: rgba(245, 158, 11, 0.2); color: #FBBF24; padding: 3px 10px; border-radius: 999px; font-weight: 700; border: 1px solid rgba(245, 158, 11, 0.35);">
+                                {"त्वरित सलाह" if lang == "hi" else "Instant Protection Advice"}
+                            </span>
+                        </div>
+                        <div style="font-size: 0.88rem; color: #E2E8F0; margin-top: 8px; line-height: 1.45; border-top: 1px solid rgba(245, 158, 11, 0.15); padding-top: 8px;">
+                            💡 <strong>{"सुरक्षा निर्देश:" if lang == "hi" else "Immediate Action:"}</strong> {html.escape(scam_adv)}
+                        </div>
+                    </div>
+                    """,
+                    unsafe_allow_html=True,
+                )
 
             # Highlighted message
             highlighted = _highlight_message(text, result.findings)
@@ -1494,9 +1567,48 @@ def main() -> None:
             # Next steps
             _render_next_steps(result, lang)
 
-            # Copy report
+            # Family Shield Alert Demo (High risk messages)
+            if result.tier == "high":
+                st.markdown(
+                    f"""
+                    <div class="phishnet-card" style="border: 1px solid rgba(168, 85, 247, 0.35); background: linear-gradient(135deg, rgba(168, 85, 247, 0.08) 0%, rgba(15, 23, 42, 0.8) 100%);">
+                        <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap;">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <span style="font-size: 1.4rem;">👨‍👩‍👧‍👦</span>
+                                <div>
+                                    <div style="font-weight: 800; color: #F8FAFC; font-size: 1.05rem;">
+                                        {"फैमिली शील्ड ऑटो-अलर्ट (लाइव डेमो)" if lang == "hi" else "Family Shield Auto-Alert (Live Demo)"}
+                                    </div>
+                                    <div style="font-size: 0.82rem; color: #CBD5E1;">
+                                        {"बुजुर्ग माता-पिता द्वारा हाई-रिस्क संदेश चेक करने पर विश्वसनीय संपर्क को तत्काल अलर्ट भेजा जाता है।" if lang == "hi" else "When an elderly relative checks a High-Risk message, their designated guardian is alerted."}
+                                    </div>
+                                </div>
+                            </div>
+                            <span class="price-pilot-badge" style="background: rgba(168, 85, 247, 0.2); color: #C084FC; border-color: rgba(168, 85, 247, 0.4);">
+                                ₹99 / mo Tier Demo
+                            </span>
+                        </div>
+                        <div style="margin-top: 12px; background: rgba(0,0,0,0.3); border-radius: 8px; padding: 12px; font-family: 'JetBrains Mono', monospace; font-size: 0.82rem; color: #E2E8F0; border: 1px dashed rgba(168, 85, 247, 0.4);">
+                            🚨 <strong>[SMS to Guardian]</strong>: PhishNet Family Shield detected a HIGH-RISK scam message ({result.scam_type or "Deceptive Phishing"}) on your family member's phone. Risk Score: {result.score}/100. Advice: Tell them NOT to transfer money or share OTPs.
+                        </div>
+                    </div>
+                    """,
+                    unsafe_allow_html=True,
+                )
+
+            # Copy report for National Cyber Crime Portal (cybercrime.gov.in & 1930)
             st.markdown(
-                f'<div class="phishnet-card"><h3 style="margin-top:0;">{t("copy_report", lang)}</h3>',
+                f'<div class="phishnet-card"><h3 style="margin-top:0;">📋 {"राष्ट्रीय साइबर अपराध रिपोर्ट (cybercrime.gov.in / 1930)" if lang == "hi" else "Pre-Filled Incident Report (cybercrime.gov.in & 1930)"}</h3>',
+                unsafe_allow_html=True,
+            )
+            st.markdown(
+                "<span style='font-size:0.85rem; color:#94A3B8;'>"
+                + (
+                    "इस रिपोर्ट को कॉपी करके cybercrime.gov.in पर पेस्ट करें या 1930 हेल्पलाइन पर कॉल करते समय संदर्भ के रूप में उपयोग करें।"
+                    if lang == "hi"
+                    else "Copy this pre-formatted report directly into the incident description box on cybercrime.gov.in, or read it to the 1930 cyber fraud operator."
+                )
+                + "</span>",
                 unsafe_allow_html=True,
             )
             include_msg = st.checkbox(
@@ -1675,7 +1787,7 @@ def main() -> None:
                             <li>Bait-Hook-Ask transparent breakdown</li>
                             <li>Bilingual English & Hindi support</li>
                             <li>Tesseract screenshot OCR</li>
-                            <li>100% DPDP Act zero-retention privacy</li>
+                            <li>Privacy-first design aligned with DPDP principles</li>
                         </ul>
                     </div>
                 </div>

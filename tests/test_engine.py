@@ -324,3 +324,68 @@ class TestMultipleSpanHighlighting:
         # But points are only awarded once per rule
         assert result.raw_score == 120
         assert result.score == 100
+
+
+def test_fake_lpg_subsidy_with_lookalike_link():
+    """LPG subsidy scam with unbranded deceptive link must score High."""
+    from phishnet.links import analyse_links
+
+    text = "LPG Subsidy credited of Rs 400. Claim your subsidy now at http://lpg-subsidy-claim.xyz/portal"
+    link_findings = analyse_links(normalise(text))
+    result = analyse(text, link_findings=link_findings)
+    assert result.score >= 55
+    assert result.tier == "high"
+    assert "LPG" in result.scam_type
+
+
+def test_police_video_call_digital_arrest():
+    """Police alert video call arrest scam must score High."""
+    text = "Police alert: Your Aadhaar was used in money laundering. Join the video call immediately or you'll be arrested."
+    result = analyse(text)
+    assert result.score >= 50
+    assert result.tier in ("medium", "high")
+    assert "Digital Arrest" in result.scam_type
+
+
+def test_part_time_job_whatsapp_group():
+    """Part-time job with WhatsApp group invite must score Medium/High."""
+    text = "Part-time job offer: Earn Rs 3000 to Rs 5000 daily from home. Join our WhatsApp group to start tasks now."
+    result = analyse(text)
+    assert result.score >= 50
+    assert result.tier in ("medium", "high")
+    assert "Job" in result.scam_type
+
+
+def test_trai_number_disconnection_notice():
+    """TRAI number disconnection threat must score Medium/High."""
+    text = "TRAI notice: Your mobile number will be disconnected in 2 hours due to illegal activity. Contact authority immediately."
+    result = analyse(text)
+    assert result.score >= 45
+    assert result.tier in ("medium", "high")
+
+
+def test_fake_debit_alert_callback_scam():
+    """Fake debit alert with callback number must score Medium/High."""
+    text = "Alert: Rs 14,999 debited from your card. If not you, call 9876543210 immediately to cancel this transaction."
+    result = analyse(text)
+    assert result.score >= 50
+    assert result.tier in ("medium", "high")
+    assert "Callback" in result.scam_type
+
+
+def test_genuine_hackathon_fee_reminder():
+    """Genuine hackathon registration fee with deadline must stay Low (safe)."""
+    text = "Reminder: Your hackathon registration fee of Rs 250 is due by tonight. See you at the auditorium."
+    result = analyse(text)
+    assert result.score <= 25
+    assert result.tier == "low"
+
+
+def test_genuine_library_overdue_notice():
+    """Library overdue notice with fine must stay Low (safe)."""
+    text = (
+        "Library Notice: Book returned late. Please pay fine of Rs 10 at the circulation counter."
+    )
+    result = analyse(text)
+    assert result.score <= 25
+    assert result.tier == "low"

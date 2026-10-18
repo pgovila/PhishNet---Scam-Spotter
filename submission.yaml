@@ -12,7 +12,7 @@ team:
 # Submission URLs
 # Update demo_video_url with your recorded demo video link for final Unstop portal upload
 demo_video_url: "https://youtu.be/DEMO_VIDEO_ID"
-live_url: "https://phishnet-scam-spotter.streamlit.app"
+live_url: "https://phishnet---scam-spotter.streamlit.app"
 github_url: "https://github.com/pgovila/PhishNet---Scam-Spotter"
 
 # Paths to screenshots (relative to project root).

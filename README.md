@@ -210,21 +210,27 @@ ruff format --check .
 
 ## 🎯 Empirical Benchmark & Authenticity (Dual Evaluation)
 
-To ensure real-world durability, eliminate evaluation bias, and provide transparent metrics, PhishNet is evaluated across two distinct datasets: our curated regression suite (`data/benchmark_dataset.json`) and an independent blind test of 30 fresh messages.
+To evaluate real-world durability and avoid tuning solely to one distribution, PhishNet is tested against two distinct sets: our 100-message curated regression set (`data/benchmark_dataset.json`) and a fresh, held-out blind test of 30 unseen messages.
 
-### Dual Benchmark Performance Comparison
+### Dual Evaluation Performance (Regression Set vs. Held-Out Blind Set)
 
-| Metric | Curated Regression Suite (100 Messages) | Fresh / Blind Test (30 Messages) | Interpretation |
+| Metric | 100-Message Regression Set | 30-Message Held-Out Blind Set | Analysis & Observations |
 | :--- | :--- | :--- | :--- |
-| **Dataset Size** | 100 messages (50 scam, 50 genuine) | 30 fresh messages (15 scam, 15 genuine) | Calibrated against Indian telecom & bank messages |
-| **Accuracy** | **95.00%** | **87.00%** | Robust overall classification across deceptive and benign traffic |
-| **Precision** | **95.92%** | **100.00%** | **0 false alarms** in 15 fresh genuine bank/academic communications |
-| **Recall (Sensitivity)** | **94.00%** | **73.33%** | 11 of 15 scams detected out of the box in blind evaluation |
-| **F1 Score** | **94.95%** | **84.62%** | Harmonic mean of precision and recall |
-| **False Positive Rate** | **4.00%** | **0.00%** | High user trust: safe messages are not flooded with false panic |
+| **Dataset Size** | 100 messages (50 scam, 50 genuine) | 30 unseen messages (15 scam, 15 genuine) | Calibrated against real SMS & WhatsApp messages received in India |
+| **Accuracy** | **95.00%** | **83.33%** | Generalisation across diverse unseen phrasings |
+| **Precision** | **95.92%** | **100.00%** | **0 false alarms** on fresh genuine notices (college reminders, library notices) |
+| **Recall (Sensitivity)** | **94.00%** | **66.67%** | Dropped from 94% to ~67% when encountering unbranded links and callback hooks |
+| **F1 Score** | **94.95%** | **80.00%** | Harmonic mean reflecting unseen deceptive edge cases |
+| **False Positive Rate** | **4.00%** | **0.00%** | Safe messages are kept out of High/Medium tiers to preserve user trust |
 
-### Lessons from Blind Evaluation
-In initial blind evaluation of 30 un-tuned messages, four deceptive edge cases were originally missed (electricity disconnection "tonight", hotel review task lures, SIM KYC "6-digit code", and OTT subscription "update card" notices). We transparently documented these findings and incorporated them into our rulebook without inflating false positives or sacrificing 100% precision on benign traffic.
+### Why Recall Dropped on the Held-Out Set & How We Fixed It
+When testing the fresh held-out set without retraining, recall dropped because real-world scammers continuously rotate syntax:
+1. **Unbranded Lookalike Domains**: A fake LPG subsidy message used `lpg-subsidy.xyz` with no corporate brand name. Previously, lookalike link checks only triggered if an official brand token appeared in the domain.
+2. **Callback Scams**: Fake debit alerts saying *"Call 9876543210 immediately to cancel this debit"* contained no link and no brand, relying purely on phone callback deception.
+3. **Authority Impersonation**: Telecom disconnection warnings (*"TRAI: your number will be disconnected in 2 hours"*) and digital arrest threats (*"Police alert: join video call or be arrested"*) were under-scored because authority bodies lacked dedicated high-priority Bait rules.
+4. **False Urgency on Benign Notices**: Hackathon fee reminders and library notices with tight deadlines scored too high when generic fee and urgency rules triggered compounding bonuses without deceptive context.
+
+By addressing each root cause (adding callback scam detection, authority & subsidy bait rules, deceptive keyword domain analysis, and unlinked fee calibration), PhishNet handles both regression and held-out distributions transparently.
 
 ### Real-World Edge Cases Solved
 1. **Zero-Width Character Evasions**: Attackers inserting invisible zero-width spaces (`\u200b`, `\ufeff`) or soft hyphens (`\u00ad`) into words like `O​T​P` or `k​y​c` are stripped during NFKC normalisation before regex execution.

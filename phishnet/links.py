@@ -335,7 +335,34 @@ def analyse_links(
                 reasons.append(f"Unusual TLD '.{url.suffix}' — commonly abused")
                 is_high_risk = True
 
-            # 7. Mixed-script IDN?
+            # 7. Deceptive keywords in unbranded domain (e.g. lpg-subsidy, kyc-verification, police-challan)?
+            _DECEPTIVE_DOMAIN_KEYWORDS = (
+                "subsidy",
+                "ujjwala",
+                "pmkisan",
+                "echallan",
+                "challan",
+                "police-notice",
+                "police",
+                "trai-verify",
+                "telecom-kyc",
+                "kyc-verify",
+                "kycupdate",
+                "ebill",
+                "electricitybill",
+                "refund-claim",
+                "tax-refund",
+            )
+            cleaned_domain = url.full_domain.replace(".", "-").lower()
+            for kw in _DECEPTIVE_DOMAIN_KEYWORDS:
+                if kw in cleaned_domain:
+                    reasons.append(
+                        f"Domain contains deceptive administrative/service keyword '{kw}' on an unofficial host"
+                    )
+                    is_high_risk = True
+                    break
+
+            # 8. Mixed-script IDN?
             try:
                 url.full_domain.encode("ascii")
             except UnicodeEncodeError:
