@@ -960,17 +960,59 @@ def _inject_css() -> None:
             font-weight: 800;
         }}
 
-        /* Disclaimer Card */
-        .disclaimer-card {{
-            background: rgba(30, 41, 59, 0.45);
-            border: 1px dashed rgba(255, 255, 255, 0.15);
-            border-radius: 12px;
-            padding: 14px 18px;
-            font-size: 0.82rem;
-            color: #94A3B8;
-            line-height: 1.5;
-            margin-top: 24px;
+        /* Welcome & Onboarding Guide */
+        .welcome-hero {{
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(168, 85, 247, 0.12) 50%, rgba(15, 23, 42, 0.8) 100%);
+            border: 1px solid rgba(168, 85, 247, 0.35);
+            border-radius: 20px;
+            padding: 30px 28px;
+            margin-bottom: 24px;
+            box-shadow: 0 12px 36px -8px rgba(99, 102, 241, 0.25);
+            position: relative;
+            overflow: hidden;
         }}
+        .welcome-hero h2 {{
+            font-family: 'Outfit', sans-serif;
+            font-size: 2.1rem;
+            font-weight: 900;
+            margin: 0 0 10px 0;
+            background: linear-gradient(135deg, #FFFFFF 30%, #93C5FD 70%, #C084FC 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }}
+        .welcome-grid {{
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 16px;
+            margin: 20px 0;
+        }}
+        .welcome-card {{
+            background: rgba(15, 23, 42, 0.65);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 16px;
+            padding: 20px 22px;
+            transition: all 0.2s ease;
+        }}
+        .welcome-card:hover {{
+            background: rgba(30, 41, 59, 0.7);
+            border-color: rgba(99, 102, 241, 0.4);
+            transform: translateY(-2px);
+        }}
+        .welcome-step-badge {{
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            border-radius: 10px;
+            font-weight: 900;
+            font-size: 0.95rem;
+            margin-bottom: 12px;
+        }}
+        .step-1 {{ background: rgba(56, 189, 248, 0.2); color: #38BDF8; border: 1px solid rgba(56, 189, 248, 0.4); }}
+        .step-2 {{ background: rgba(245, 158, 11, 0.2); color: #FBBF24; border: 1px solid rgba(245, 158, 11, 0.4); }}
+        .step-3 {{ background: rgba(239, 68, 68, 0.2); color: #F87171; border: 1px solid rgba(239, 68, 68, 0.4); }}
+        .step-4 {{ background: rgba(16, 185, 129, 0.2); color: #34D399; border: 1px solid rgba(16, 185, 129, 0.4); }}
     </style>
     """,
         unsafe_allow_html=True,
@@ -1283,13 +1325,155 @@ def main() -> None:
     )
 
     # ── Tabs Navigation ───────────────────────────────────────────────────
-    tab_inspector, tab_telemetry, tab_pricing = st.tabs(
+    tab_welcome, tab_inspector, tab_telemetry, tab_pricing = st.tabs(
         [
+            "👋 " + ("स्वागत एवं परिचय" if lang == "hi" else "Welcome & Overview"),
             "🔍 " + ("स्कैम डिटेक्टर" if lang == "hi" else "Scam Inspector"),
             "📊 " + ("थ्रेट ट्रेंड्स व विश्लेषण" if lang == "hi" else "Threat Trends & Telemetry"),
             "🏢 " + ("संस्थानों व बैंकों हेतु" if lang == "hi" else "For Colleges & Banks (Pricing)"),
         ]
     )
+
+    # ══════════════════════════════════════════════════════════════════════
+    # TAB 0: WELCOME & OVERVIEW
+    # ══════════════════════════════════════════════════════════════════════
+    with tab_welcome:
+        st.markdown(
+            f"""
+            <div class="welcome-hero">
+                <h2>{"PhishNet में आपका स्वागत है!" if lang == "hi" else "Welcome to PhishNet — Scam Spotter"}</h2>
+                <div style="font-size: 1.05rem; color: #CBD5E1; line-height: 1.6; max-width: 800px;">
+                    {"भारत के नागरिकों, छात्रों, वरिष्ठ नागरिकों और नए डिजिटल भुगतान उपयोगकर्ताओं के लिए बनाया गया एक पारदर्शी, नियम-आधारित साइबर सुरक्षा गार्ड।" if lang == "hi" else "A transparent, deterministic cybersecurity guardian engineered for Indian citizens, students, elderly parents, and first-time digital banking users."}
+                </div>
+                <div style="margin-top: 14px; display: flex; gap: 10px; flex-wrap: wrap;">
+                    <span style="background: rgba(99, 102, 241, 0.25); color: #C7D2FE; padding: 4px 12px; border-radius: 999px; font-size: 0.82rem; font-weight: 700; border: 1px solid rgba(99, 102, 241, 0.4);">
+                        🎯 Problem Statement 1: Scam Spotter
+                    </span>
+                    <span style="background: rgba(16, 185, 129, 0.2); color: #6EE7B7; padding: 4px 12px; border-radius: 999px; font-size: 0.82rem; font-weight: 700; border: 1px solid rgba(16, 185, 129, 0.4);">
+                        🛡️ DPDP Act 2023 Aligned
+                    </span>
+                    <span style="background: rgba(245, 158, 11, 0.2); color: #FCD34D; padding: 4px 12px; border-radius: 999px; font-size: 0.82rem; font-weight: 700; border: 1px solid rgba(245, 158, 11, 0.4);">
+                        ⚡ Zero-Retention Architecture
+                    </span>
+                </div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+        st.markdown(
+            "### 🧠 "
+            + (
+                "हमारा सिद्धांत: बेट • हुक • आस्क (Bait • Hook • Ask)"
+                if lang == "hi"
+                else "The Core Mental Model: Bait • Hook • Ask"
+            )
+        )
+        st.markdown(
+            (
+                "<span style='color:#94A3B8; font-size:0.95rem;'>हम किसी 'ब्लैक-बॉक्स AI' के आधार पर मनमाना फैसला नहीं सुनाते। हर संदिग्ध संदेश को 3 स्पष्ट भागों में परखा जाता है:</span>"
+                if lang == "hi"
+                else "<span style='color:#94A3B8; font-size:0.95rem;'>Unlike opaque black-box AI tools, PhishNet scores every suspicious message using visible, verifiable rules across three deception pillars:</span>"
+            ),
+            unsafe_allow_html=True,
+        )
+
+        st.markdown(
+            f"""
+            <div class="welcome-grid">
+                <div class="welcome-card" style="border-left: 4px solid {AMBER};">
+                    <div style="font-size: 1.5rem; margin-bottom: 6px;">🎣</div>
+                    <div style="font-weight: 800; font-size: 1.1rem; color: #F8FAFC;">
+                        {"1. बेट (Bait) — विश्वास का दुरुपयोग" if lang == "hi" else "1. The Bait — Borrowed Trust"}
+                    </div>
+                    <div style="font-size: 0.86rem; color: #CBD5E1; margin-top: 6px; line-height: 1.5;">
+                        {"किसी प्रतिष्ठित बैंक (SBI, HDFC), सरकारी संस्था (TRAI, Police, Income Tax) या लॉटरी/इनाम का नाम लेकर आपका ध्यान भटकाना।" if lang == "hi" else "Impersonating reputable banks (SBI, HDFC), statutory authorities (Police, TRAI, CBI), or unrealistic prize lures to lower your guard."}
+                    </div>
+                </div>
+                <div class="welcome-card" style="border-left: 4px solid {CRIMSON};">
+                    <div style="font-size: 1.5rem; margin-bottom: 6px;">🪝</div>
+                    <div style="font-weight: 800; font-size: 1.1rem; color: #F8FAFC;">
+                        {"2. हुक (Hook) — जल्दबाज़ी या डर" if lang == "hi" else "2. The Hook — Panic & Urgency"}
+                    </div>
+                    <div style="font-size: 0.86rem; color: #CBD5E1; margin-top: 6px; line-height: 1.5;">
+                        {"'खाता तुरंत बंद हो जाएगा', 'डिजिटल अरेस्ट', 'बिजली कट जाएगी' या '2 घंटे के अंदर' जैसी धमकियां देकर सोचने का समय न देना।" if lang == "hi" else "Fabricating artificial time pressure ('within 2 hours', 'tonight') or fear ('account suspended', 'digital arrest') to trigger panic."}
+                    </div>
+                </div>
+                <div class="welcome-card" style="border-left: 4px solid #A855F7;">
+                    <div style="font-size: 1.5rem; margin-bottom: 6px;">✋</div>
+                    <div style="font-weight: 800; font-size: 1.1rem; color: #F8FAFC;">
+                        {"3. आस्क (Ask) — खतरनाक कदम" if lang == "hi" else "3. The Ask — The Risky Trap"}
+                    </div>
+                    <div style="font-size: 0.86rem; color: #CBD5E1; margin-top: 6px; line-height: 1.5;">
+                        {"अज्ञात लिंक पर क्लिक करना, OTP/PIN मांगना, AnyDesk/APK डाउनलोड कराना, या अज्ञात नंबर पर कॉल करने को कहना।" if lang == "hi" else "The harmful action: unverified link clicks, OTP/PIN requests, malicious APK downloads, remote access apps, or callback traps."}
+                    </div>
+                </div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+        st.markdown(
+            "### 🚀 "
+            + (
+                "ऐप का उपयोग कैसे करें? (Quick Start Guide)"
+                if lang == "hi"
+                else "How to Use PhishNet (Quick Start Guide)"
+            )
+        )
+
+        st.markdown(
+            f"""
+            <div class="welcome-grid">
+                <div class="welcome-card">
+                    <div class="welcome-step-badge step-1">1</div>
+                    <div style="font-weight: 700; color: #F8FAFC; font-size: 0.95rem;">
+                        {"संदेश पेस्ट करें या फोटो अपलोड करें" if lang == "hi" else "Paste Text or Upload Screenshot"}
+                    </div>
+                    <div style="font-size: 0.82rem; color: #94A3B8; margin-top: 4px; line-height: 1.4;">
+                        {"'Scam Inspector' टैब पर जाएं और संदिग्ध SMS, वॉट्सऐप या ईमेल पेस्ट करें अथवा स्क्रीनशॉट अपलोड करें।" if lang == "hi" else "Go to the 'Scam Inspector' tab. Paste suspicious SMS/WhatsApp text or upload a screenshot (OCR-enabled)."}
+                    </div>
+                </div>
+                <div class="welcome-card">
+                    <div class="welcome-step-badge step-2">2</div>
+                    <div style="font-weight: 700; color: #F8FAFC; font-size: 0.95rem;">
+                        {"एक क्लिक में एनालिसिस" if lang == "hi" else "Instant Offline Analysis"}
+                    </div>
+                    <div style="font-size: 0.82rem; color: #94A3B8; margin-top: 4px; line-height: 1.4;">
+                        {"'संदेश की जाँच करें' बटन दबाएं। इंजन पारदर्शी अंकों (0-100) के साथ हर संदिग्ध शब्द को हाईलाइट करेगा।" if lang == "hi" else "Click 'Analyse Message'. The deterministic rules engine highlights each deception marker with exact points."}
+                    </div>
+                </div>
+                <div class="welcome-card">
+                    <div class="welcome-step-badge step-3">3</div>
+                    <div style="font-weight: 700; color: #F8FAFC; font-size: 0.95rem;">
+                        {"पहचाना गया घोटाला प्रकार और सलाह" if lang == "hi" else "Scam Classification & Advice"}
+                    </div>
+                    <div style="font-size: 0.82rem; color: #94A3B8; margin-top: 4px; line-height: 1.4;">
+                        {"डिजिटल अरेस्ट, केवाईसी निलंबन, कूरियर शुल्क या कॉल बैक झांसे की तुरंत पहचान और 1-लाइन सुरक्षा निर्देश।" if lang == "hi" else "Identifies specific scam archetypes (Digital Arrest, KYC, Callback Trap) with instant actionable advice."}
+                    </div>
+                </div>
+                <div class="welcome-card">
+                    <div class="welcome-step-badge step-4">4</div>
+                    <div style="font-weight: 700; color: #F8FAFC; font-size: 0.95rem;">
+                        {"पुलिस पोर्टल (1930) हेतु कॉपी-रेडी रिपोर्ट" if lang == "hi" else "One-Click Police Report"}
+                    </div>
+                    <div style="font-size: 0.82rem; color: #94A3B8; margin-top: 4px; line-height: 1.4;">
+                        {"cybercrime.gov.in या राष्ट्रीय हेल्पलाइन 1930 पर सीधे उपयोग करने हेतु तैयार रिपोर्ट एक क्लिक में कॉपी करें।" if lang == "hi" else "Get a pre-formatted complaint text ready to paste directly into cybercrime.gov.in or report to 1930."}
+                    </div>
+                </div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+        st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
+        st.info(
+            (
+                "👉 **शुरुआत करें**: ऊपर दिए गए **'🔍 स्कैम डिटेक्टर' (Scam Inspector)** टैब पर क्लिक करें और 'नमूना उदाहरण देखें' बटन दबाकर तुरंत टेस्ट करें!"
+                if lang == "hi"
+                else "👉 **Ready to try?** Click on the **'🔍 Scam Inspector'** tab above and test with one of the instant sample messages!"
+            )
+        )
 
     # ══════════════════════════════════════════════════════════════════════
     # TAB 1: SCAM INSPECTOR
