@@ -1,8 +1,8 @@
-# PhishNet — Scam Spotter
+# PhishNet - Scam Spotter
 
 > **"Spot the bait. See the hook. Skip the ask."**
 
-[![CI — PhishNet](https://github.com/pgovila/PhishNet---Scam-Spotter/actions/workflows/ci.yml/badge.svg)](https://github.com/pgovila/PhishNet---Scam-Spotter/actions)
+[![CI - PhishNet](https://github.com/pgovila/PhishNet---Scam-Spotter/actions/workflows/ci.yml/badge.svg)](https://github.com/pgovila/PhishNet---Scam-Spotter/actions)
 [![Python 3.12](https://img.shields.io/badge/python-3.12%20(recommended)-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Streamlit](https://img.shields.io/badge/Streamlit-1.42+-FF4B4B.svg)](https://streamlit.io)
@@ -15,7 +15,7 @@ PhishNet is a production-ready, privacy-first cybersecurity tool tailored for In
 
 ## 🎯 Key Highlights
 
-- **Transparent Rules-Based Scoring**: The rules engine sets the score deterministically — **AI never sets or influences the score**.
+- **Transparent Rules-Based Scoring**: The rules engine sets the score deterministically - **AI never sets or influences the score**.
 - **Bait-Hook-Ask Mental Model**:
   - 🎣 **Bait**: Borrowed brand authority (SBI, India Post, Income Tax, etc.) or lures (lottery, cashback, free gifts).
   - 🪝 **Hook**: Artificial urgency (*"immediately"*, *"within 2 hours"*, *"aaj hi"*) or fear (*"account blocked"*, *"KYC incomplete"*, *"SIM deactivation"*).
@@ -238,7 +238,7 @@ By addressing each root cause (adding callback scam detection, authority & subsi
    - **Remote Screen Sharing**: Coercion to install AnyDesk, TeamViewer, or RustDesk.
    - **UPI Collect Request Tricks**: Reverse refund scams claiming "enter PIN to receive cash back".
    - **Malicious APK Sideloading**: Direct `.apk` download prompts disguised as bank updates.
-   - **Part-Time Work / Telegram Tasks**: Hotel rating and YouTube task lures promising daily ₹2,000–₹5,000.
+   - **Part-Time Work / Telegram Tasks**: Hotel rating and YouTube task lures promising daily ₹2,000 - ₹5,000.
 
 ---
 
