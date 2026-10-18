@@ -8,10 +8,16 @@ Computes and asserts Accuracy, Precision, Recall, and F1 Score.
 from __future__ import annotations
 
 import json
+import sys
 from pathlib import Path
 
-from phishnet.engine import analyse, load_rules, normalise
-from phishnet.links import analyse_links
+# Ensure project root is in sys.path when running script directly
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
+from phishnet.engine import analyse, load_rules, normalise  # noqa: E402
+from phishnet.links import analyse_links  # noqa: E402
 
 DATA_DIR = Path(__file__).resolve().parent.parent / "data"
 
@@ -85,3 +91,8 @@ def test_benchmark_metrics():
     assert precision >= 0.90, f"Precision too low: {precision:.2f}"
     assert recall >= 0.90, f"Recall too low: {recall:.2f}"
     assert f1 >= 0.90, f"F1-score too low: {f1:.2f}"
+
+
+if __name__ == "__main__":
+    test_benchmark_metrics()
+

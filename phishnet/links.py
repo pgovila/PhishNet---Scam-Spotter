@@ -139,10 +139,13 @@ def extract_urls(text: str) -> list[ExtractedURL]:
             is_ip = True
 
         reg_domain = (
-            ext.top_domain_under_public_suffix
-            if hasattr(ext, "top_domain_under_public_suffix")
-            else ext.domain
-        ) or ext.domain
+            getattr(ext, "registered_domain", "")
+            or (
+                f"{ext.domain}.{ext.suffix}".strip(".")
+                if ext.suffix
+                else ext.domain
+            )
+        )
         full_domain = f"{ext.subdomain}.{ext.domain}.{ext.suffix}".strip(".")
 
         scheme = "https" if raw.lower().startswith("https") else "http"

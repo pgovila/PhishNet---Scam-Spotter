@@ -2,10 +2,18 @@
 
 from __future__ import annotations
 
+import sys
+from pathlib import Path
+
 # pyrefly: ignore[missing-import]
 from fastapi.testclient import TestClient
 
-from api import app
+# Ensure project root is in sys.path when running script directly
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
+from api import app  # noqa: E402
 
 client = TestClient(app)
 
@@ -57,3 +65,10 @@ def test_api_key_auth(monkeypatch):
     # With valid key -> 200
     resp_ok = client.post("/v1/analyze", json=payload, headers={"X-API-Key": "secret-test-key"})
     assert resp_ok.status_code == 200
+
+
+if __name__ == "__main__":
+    import pytest
+
+    sys.exit(pytest.main([str(Path(__file__))]))
+

@@ -2,7 +2,15 @@
 
 from __future__ import annotations
 
-from phishnet.links import (
+import sys
+from pathlib import Path
+
+# Ensure project root is in sys.path when running script directly
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
+from phishnet.links import (  # noqa: E402
     _has_homoglyphs,
     _levenshtein,
     analyse_links,
@@ -101,3 +109,10 @@ class TestLevenshtein:
     def test_typosquat(self):
         # sbi.co.in vs sbi.co.ln — edit distance 1
         assert _levenshtein("sbi.co.in", "sbi.co.ln") == 1
+
+
+if __name__ == "__main__":
+    import pytest
+
+    sys.exit(pytest.main([str(Path(__file__))]))
+

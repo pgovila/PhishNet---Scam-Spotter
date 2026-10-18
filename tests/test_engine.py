@@ -7,13 +7,19 @@ If a pattern conflicts with an expected score, fix the pattern, not the test.
 from __future__ import annotations
 
 import json
+import sys
 from pathlib import Path
 
-# pyrefly: ignore[missing-import]
-import pytest
+# Ensure project root is in sys.path when running script directly
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
 
-from phishnet.engine import AnalysisResult, analyse, load_rules, normalise
-from phishnet.links import analyse_links
+# pyrefly: ignore[missing-import]
+import pytest  # noqa: E402
+
+from phishnet.engine import AnalysisResult, analyse, load_rules, normalise  # noqa: E402
+from phishnet.links import analyse_links  # noqa: E402
 
 DATA_DIR = Path(__file__).resolve().parent.parent / "data"
 
@@ -389,3 +395,8 @@ def test_genuine_library_overdue_notice():
     result = analyse(text)
     assert result.score <= 25
     assert result.tier == "low"
+
+
+if __name__ == "__main__":
+    sys.exit(pytest.main([str(Path(__file__))]))
+
