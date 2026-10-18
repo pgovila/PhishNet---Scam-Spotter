@@ -88,10 +88,6 @@ PhishNet is a production-ready, privacy-first cybersecurity tool tailored for In
 │   ├── i18n.py                      # Bilingual UI strings (English/Hindi)
 │   ├── links.py                     # Offline URL and typosquat engine
 │   └── report.py                    # Formal police report builder
-├── scripts/
-│   ├── build_submission_pdf.py      # Automated 5-page submission PDF compiler
-│   ├── capture_screenshots.py       # Playwright UI screenshot capture automation
-│   └── entrypoint.sh                # Container entrypoint supporting multi-service
 ├── tests/
 │   ├── test_api.py                  # FastAPI REST endpoint integration tests
 │   ├── test_benchmark.py            # 100-message precision/recall evaluation
@@ -104,7 +100,6 @@ PhishNet is a production-ready, privacy-first cybersecurity tool tailored for In
 ├── pyproject.toml                   # Project metadata & Ruff configuration
 ├── requirements.txt                 # Fully pinned dependencies (==)
 ├── SECURITY.md                      # Security disclosure policy
-└── submission.yaml                  # Hackathon metadata & video links
 ```
 
 ---
@@ -352,12 +347,6 @@ PhishNet is designed around the principles of the **Digital Personal Data Protec
 
 > [!NOTE]
 > **Heuristic Decision Support Disclaimer**: PhishNet is a heuristic risk evaluation and educational decision-support tool, not an absolute guarantee or legal determination. Scammers constantly vary messaging patterns. Always verify critical financial, institutional, or legal matters directly through verified official channels, mobile banking apps, or official institution hotlines.
-
----
-
-## 👥 Team
-
-- **Pankhuri Govila** — Lead Full-Stack & Security Engineer ([GitHub](https://github.com/pgovila))
 
 ---
 

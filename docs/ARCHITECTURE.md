@@ -165,3 +165,4 @@ Display Results
 | `tests/test_engine.py` | Engine tests |
 | `tests/test_links.py` | Link analysis tests |
 | `tests/test_api.py` | API endpoint tests |
+| `pyproject.toml` | Project & linter configuration |
