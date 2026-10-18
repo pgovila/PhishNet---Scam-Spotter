@@ -165,7 +165,3 @@ Display Results
 | `tests/test_engine.py` | Engine tests |
 | `tests/test_links.py` | Link analysis tests |
 | `tests/test_api.py` | API endpoint tests |
-| `scripts/build_submission_pdf.py` | Hackathon submission PDF generator |
-| `scripts/capture_screenshots.py` | Automated UI screenshot capture |
-| `submission.yaml` | Team metadata & URLs for PDF generation |
-| `pyproject.toml` | Project & linter configuration |
