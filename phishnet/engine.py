@@ -418,95 +418,150 @@ def _compute_score(
 
 # ── Scam Type Classification & Advice ─────────────────────────────────────────
 
-_SCAM_TYPES: list[tuple[str, str, str, str, set[str], list[str]]] = [
-    # (id, label_en, label_hi, advice_en, advice_hi, required_rules, keywords_re)
-    (
-        "digital_arrest",
-        "Digital Arrest / Law Enforcement Impersonation",
-        "डिजिटल अरेस्ट / पुलिस का नाम लेकर ठगी",
-        "Police, CBI, Customs or Judges never hold trials, arrest suspects, or demand money via video call.",
-        "पुलिस, सीबीआई या अदालत कभी भी वीडियो कॉल पर पूछताछ या 'डिजिटल अरेस्ट' नहीं करती। तुरंत कॉल काटें।",
-        {"bait_authority", "hook_fear"},
-        [r"video\s*call", r"arrest", r"cbi", r"police", r"customs", r"contraband", r"skype"],
-    ),
-    (
-        "callback_scam",
-        "Fake Debit Alert / Callback Trap",
-        "फर्जी डेबिट अलर्ट / कॉल बैक झांसा",
-        "Never call the cancellation number given in an SMS. Check your bank statement via your official banking app.",
-        "एसएमएस में दिए गए नंबर पर कभी कॉल न करें। अपने आधिकारिक बैंक ऐप में जाकर स्टेटमेंट चेक करें।",
-        {"ask_callback"},
-        [r"call", r"cancel", r"debited", r"stop", r"charge"],
-    ),
-    (
-        "kyc_suspension",
-        "Bank / SIM KYC Deactivation Scam",
-        "बैंक / सिम केवाईसी बंद होने का झांसा",
-        "Banks and telecom operators never deactivate accounts over SMS links or ask for OTPs to update KYC.",
-        "बैंक या सिम कंपनियां कभी भी एसएमएस लिंक से केवाईसी अपडेट करने या ओटीपी मांगने को नहीं कहतीं।",
-        {"hook_fear"},
-        [r"kyc", r"block", r"suspend", r"deactivat", r"sim", r"pan"],
-    ),
-    (
-        "lpg_subsidy",
-        "LPG / Government Subsidy Phishing",
-        "एलपीजी / सरकारी योजना सब्सिडी फ्रॉड",
-        "Government subsidies are credited automatically via Direct Benefit Transfer (DBT); no form link is required.",
-        "सरकारी सब्सिडी सीधे बैंक खाते में (डीबीटी) आती है। किसी भी लिंक पर जाकर फॉर्म भरने की जरूरत नहीं होती।",
-        {"bait_subsidy"},
-        [r"subsidy", r"lpg", r"ujjwala", r"cylinder", r"kisan"],
-    ),
-    (
-        "part_time_job",
-        "Part-Time Job / Telegram Task Scam",
-        "पार्ट-टाइम नौकरी / टेलीग्राम टास्क घोटाला",
-        "Offers paying ₹2,000–₹5,000 daily for liking videos or rating hotels are advance-fee fraud traps.",
-        "यूट्यूब वीडियो लाइक करने या होटल रेटिंग पर रोजाना हजारों रुपये देने का वादा 100% फर्जी टास्क फ्रॉड है।",
-        {"bait_lure", "ask_group_join"},
-        [
+_SCAM_TYPES: list[dict[str, Any]] = [
+    {
+        "id": "digital_arrest",
+        "label": "Digital Arrest / Law Enforcement Impersonation",
+        "label_hi": "डिजिटल अरेस्ट / पुलिस का नाम लेकर ठगी",
+        "advice": "Police, CBI, Customs or Judges never hold trials, arrest suspects, or demand money via video call.",
+        "advice_hi": "पुलिस, सीबीआई या अदालत कभी भी वीडियो कॉल पर पूछताछ या 'डिजिटल अरेस्ट' नहीं करती। तुरंत कॉल काटें।",
+        "primary_rules": {"bait_authority"},
+        "keywords": [
+            r"video\s*call",
+            r"arrest",
+            r"digital\s*arrest",
+            r"cbi",
+            r"police",
+            r"customs",
+            r"contraband",
+            r"skype",
+            r"court\s*notice",
+            r"warrant",
+        ],
+    },
+    {
+        "id": "kyc_suspension",
+        "label": "Bank / SIM KYC Deactivation Scam",
+        "label_hi": "बैंक / सिम केवाईसी बंद होने का झांसा",
+        "advice": "Banks and telecom operators never deactivate accounts over SMS links or ask for OTPs to update KYC.",
+        "advice_hi": "बैंक या सिम कंपनियां कभी भी एसएमएस लिंक से केवाईसी अपडेट करने या ओटीपी मांगने को नहीं कहतीं।",
+        "primary_rules": set(),
+        "keywords": [
+            r"kyc",
+            r"account\b.{0,20}?\b(?:block|suspend|deactivat|clos|band)",
+            r"netbanking",
+            r"pan\s*card",
+            r"sim\b.{0,20}?\b(?:deactivat|block|suspend|5g)",
+        ],
+    },
+    {
+        "id": "parcel_delivery",
+        "label": "Fake Parcel / Courier Delivery Fee Scam",
+        "label_hi": "फर्जी पार्सल / कूरियर डिलीवरी शुल्क धोखा",
+        "advice": "Postal services and couriers never hold packages demanding immediate online payment via SMS links.",
+        "advice_hi": "डाक विभाग या कूरियर कंपनियां कभी भी एसएमएस लिंक से तत्काल पार्सल शुल्क भुगतान की मांग नहीं करतीं।",
+        "primary_rules": set(),
+        "keywords": [
+            r"parcel",
+            r"india\s*post",
+            r"courier",
+            r"shipment",
+            r"delivery\s*(?:fee|charge|attempt)",
+            r"redelivery",
+            r"package",
+        ],
+    },
+    {
+        "id": "callback_scam",
+        "label": "Fake Debit Alert / Callback Trap",
+        "label_hi": "फर्जी डेबिट अलर्ट / कॉल बैक झांसा",
+        "advice": "Never call the cancellation number given in an SMS. Check your bank statement via your official banking app.",
+        "advice_hi": "एसएमएस में दिए गए नंबर पर कभी कॉल न करें। अपने आधिकारिक बैंक ऐप में जाकर स्टेटमेंट चेक करें।",
+        "primary_rules": {"ask_callback"},
+        "keywords": [
+            r"to\s*cancel\s*(?:call|contact)",
+            r"call\b.{0,40}?\b(?:cancel|stop|dispute)",
+            r"call\s*this\s*number",
+        ],
+    },
+    {
+        "id": "electricity_cutoff",
+        "label": "Electricity Bill Disconnection Scam",
+        "label_hi": "बिजली बिल बकाया / कनेक्शन कटने की धमकी",
+        "advice": "Power discoms do not send personal mobile numbers for bill payments or disconnect power within hours.",
+        "advice_hi": "बिजली विभाग कभी व्यक्तिगत मोबाइल नंबर भेजकर बिल भुगतान या कनेक्शन काटने की धमकी नहीं देता।",
+        "primary_rules": set(),
+        "keywords": [
+            r"electricity",
+            r"power\s*cut",
+            r"power\b.{0,25}?\bdisconnect",
+            r"bijli",
+            r"discom",
+            r"previous\s*month\s*bill",
+        ],
+    },
+    {
+        "id": "lpg_subsidy",
+        "label": "LPG / Government Subsidy Phishing",
+        "label_hi": "एलपीजी / सरकारी योजना सब्सिडी फ्रॉड",
+        "advice": "Government subsidies are credited automatically via Direct Benefit Transfer (DBT); no form link is required.",
+        "advice_hi": "सरकारी सब्सिडी सीधे बैंक खाते में (डीबीटी) आती है। किसी भी लिंक पर जाकर फॉर्म भरने की जरूरत नहीं होती।",
+        "primary_rules": {"bait_subsidy"},
+        "keywords": [
+            r"subsidy",
+            r"lpg",
+            r"ujjwala",
+            r"cylinder",
+            r"kisan\s*samman",
+            r"gas\s*subsidy",
+        ],
+    },
+    {
+        "id": "part_time_job",
+        "label": "Part-Time Job / Telegram Task Scam",
+        "label_hi": "पार्ट-टाइम नौकरी / टेलीग्राम टास्क घोटाला",
+        "advice": "Offers paying ₹2,000–₹5,000 daily for liking videos or rating hotels are advance-fee fraud traps.",
+        "advice_hi": "यूट्यूब वीडियो लाइक करने या होटल रेटिंग पर रोजाना हजारों रुपये देने का वादा 100% फर्जी टास्क फ्रॉड है।",
+        "primary_rules": {"ask_group_join"},
+        "keywords": [
             r"part[- ]time",
-            r"telegram",
+            r"telegram\s*(?:task|group|channel)",
             r"whatsapp\s*group",
-            r"like",
+            r"like\s*youtube",
+            r"rate\s*hotel",
             r"earn\s*(?:from\s*home|daily)",
         ],
-    ),
-    (
-        "electricity_cutoff",
-        "Electricity Bill Disconnection Scam",
-        "बिजली बिल बकाया / कनेक्शन कटने की धमकी",
-        "Power discoms do not send personal mobile numbers for bill payments or disconnect power within hours.",
-        "बिजली विभाग कभी व्यक्तिगत मोबाइल नंबर भेजकर बिल भुगतान या कनेक्शन काटने की धमकी नहीं देता।",
-        {"hook_fear", "hook_pressure"},
-        [r"electricity", r"power", r"cut\s*off", r"discom", r"bill"],
-    ),
-    (
-        "apk_malware",
-        "Malicious APK Sideloading",
-        "खतरनाक APK फाइल / मोबाइल मैलवेयर",
-        "Never install .apk files received over SMS or WhatsApp; they are banking trojans designed to steal OTPs.",
-        "एसएमएस या वॉट्सऐप पर आई .apk फाइल कभी इंस्टॉल न करें; यह बैंकिंग ओटीपी चुराने वाला वायरस है।",
-        {"ask_apk_install"},
-        [r"apk", r"install", r"download"],
-    ),
-    (
-        "remote_access",
-        "Remote Desktop Screen-Sharing Trap",
-        "स्क्रीन-शेयरिंग ऐप (AnyDesk/TeamViewer) फ्रॉड",
-        "Installing remote desktop apps allows scammers to view your screen and empty your bank account.",
-        "AnyDesk या TeamViewer जैसे ऐप डाउनलोड करने से जालसाज आपके पूरे फोन और बैंक खाते पर कब्जा कर लेते हैं।",
-        {"ask_remote_access"},
-        [r"anydesk", r"teamviewer", r"quicksupport", r"screen"],
-    ),
-    (
-        "upi_collect",
-        "Fraudulent UPI Collect / Refund Trick",
-        "फर्जी यूपीआई पिन / कलेक्ट रिक्वेस्ट धोखा",
-        "UPI PIN is required ONLY to send money, NEVER to receive refunds, cashbacks, or lottery payouts.",
-        "यूपीआई पिन केवल पैसे भेजने के लिए होता है, रिफंड या पैसे पाने के लिए कभी पिन नहीं डाला जाता।",
-        {"ask_collect_request"},
-        [r"pin", r"collect", r"receive", r"cashback"],
-    ),
+    },
+    {
+        "id": "apk_malware",
+        "label": "Malicious APK Sideloading",
+        "label_hi": "खतरनाक APK फाइल / मोबाइल मैलवेयर",
+        "advice": "Never install .apk files received over SMS or WhatsApp; they are banking trojans designed to steal OTPs.",
+        "advice_hi": "एसएमएस या वॉट्सऐप पर आई .apk फाइल कभी इंस्टॉल न करें; यह बैंकिंग ओटीपी चुराने वाला वायरस है।",
+        "primary_rules": {"ask_apk_install"},
+        "keywords": [r"\.apk\b", r"apk\s*file"],
+    },
+    {
+        "id": "remote_access",
+        "label": "Remote Desktop Screen-Sharing Trap",
+        "label_hi": "स्क्रीन-शेयरिंग ऐप (AnyDesk/TeamViewer) फ्रॉड",
+        "advice": "Installing remote desktop apps allows scammers to view your screen and empty your bank account.",
+        "advice_hi": "AnyDesk या TeamViewer जैसे ऐप डाउनलोड करने से जालसाज आपके पूरे फोन और बैंक खाते पर कब्जा कर लेते हैं।",
+        "primary_rules": {"ask_remote_access"},
+        "keywords": [r"anydesk", r"teamviewer", r"quicksupport", r"rustdesk", r"screen\s*share"],
+    },
+    {
+        "id": "upi_collect",
+        "label": "Fraudulent UPI Collect / Refund Trick",
+        "label_hi": "फर्जी यूपीआई पिन / कलेक्ट रिक्वेस्ट धोखा",
+        "advice": "UPI PIN is required ONLY to send money, NEVER to receive refunds, cashbacks, or lottery payouts.",
+        "advice_hi": "यूपीआई पिन केवल पैसे भेजने के लिए होता है, रिफंड या पैसे पाने के लिए कभी पिन नहीं डाला जाता।",
+        "primary_rules": {"ask_collect_request"},
+        "keywords": [
+            r"enter\s*(?:upi\s*)?pin\s*to\s*(?:receive|credit|get)",
+            r"approve\s*(?:upi\s*)?collect",
+        ],
+    },
 ]
 
 
@@ -517,6 +572,7 @@ def classify_scam_type(
 ) -> tuple[str, str, str, str]:
     """Classify the primary scam tactic and provide one-line protection advice.
 
+    Uses weighted scoring across primary rule hits and explicit thematic keywords.
     Returns (label_en, label_hi, advice_en, advice_hi).
     """
     if tier == "low":
@@ -525,11 +581,32 @@ def classify_scam_type(
     rule_ids = {f.rule_id for f in findings if not f.protective}
     text_lower = text.lower()
 
-    for type_id, lbl_en, lbl_hi, adv_en, adv_hi, req_rules, kw_res in _SCAM_TYPES:
-        rule_match = bool(rule_ids & req_rules)
-        kw_match = any(re.search(pat, text_lower) for pat in kw_res)
-        if rule_match or kw_match:
-            return lbl_en, lbl_hi, adv_en, adv_hi
+    best_type: dict[str, Any] | None = None
+    best_score = 0
+
+    for st_item in _SCAM_TYPES:
+        score = 0
+
+        # Primary rule match gives high confidence weight (+10)
+        if st_item["primary_rules"] and (rule_ids & st_item["primary_rules"]):
+            score += 10
+
+        # Explicit keywords matched in text
+        for kw_pat in st_item["keywords"]:
+            if re.search(kw_pat, text_lower):
+                score += 5
+
+        if score > best_score:
+            best_score = score
+            best_type = st_item
+
+    if best_type and best_score >= 5:
+        return (
+            best_type["label"],
+            best_type["label_hi"],
+            best_type["advice"],
+            best_type["advice_hi"],
+        )
 
     # Fallback for general phishing/scams
     return (

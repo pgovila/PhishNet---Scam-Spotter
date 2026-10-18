@@ -355,6 +355,12 @@ PhishNet is designed around the principles of the **Digital Personal Data Protec
 
 ---
 
+## 👥 Team
+
+- **Pankhuri Govila** — Lead Full-Stack & Security Engineer ([GitHub](https://github.com/pgovila))
+
+---
+
 ## 📜 License
 
 Distributed under the MIT License. See [LICENSE](LICENSE) for full details.
