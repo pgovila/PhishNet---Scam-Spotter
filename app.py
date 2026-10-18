@@ -1960,63 +1960,59 @@ def main() -> None:
 
         # Pricing Tiers
         st.markdown("#### 💳 Subscription Tiers")
-        st.markdown(
-            """
-            <div class="pricing-grid">
-                <div class="pricing-card">
-                    <div>
-                        <div style="font-size:1.15rem; font-weight:800; color:#F8FAFC;">Free Community</div>
-                        <div style="font-size:0.8rem; color:#94A3B8;">For individual students & citizens</div>
-                        <div class="price-tag">₹0 <span style="font-size:0.85rem; font-weight:500; color:#94A3B8;">/ forever</span></div>
-                        <ul class="pricing-feature-list">
-                            <li>Unlimited web message scanning</li>
-                            <li>Bait-Hook-Ask transparent breakdown</li>
-                            <li>Bilingual English & Hindi support</li>
-                            <li>Tesseract screenshot OCR</li>
-                            <li>Privacy-first design aligned with DPDP principles</li>
-                        </ul>
-                    </div>
-                </div>
-
-                <div class="pricing-card featured">
-                    <div>
-                        <div style="display:flex; align-items:center;">
-                            <span style="font-size:1.15rem; font-weight:800; color:#F8FAFC;">Family Shield</span>
-                            <span class="price-pilot-badge">Pilot Roadmap</span>
-                        </div>
-                        <div style="font-size:0.8rem; color:#94A3B8;">For parents, seniors & UPI beginners</div>
-                        <div class="price-tag">₹99 <span style="font-size:0.85rem; font-weight:500; color:#94A3B8;">/ month</span></div>
-                        <ul class="pricing-feature-list">
-                            <li>Dedicated WhatsApp bot forwarding</li>
-                            <li>Instant threat alerts for up to 5 family members</li>
-                            <li>Automatic alerts on suspicious OTP asks</li>
-                            <li>Direct one-touch 1930 incident logging</li>
-                            <li>Weekly family security summary</li>
-                        </ul>
-                    </div>
-                </div>
-
-                <div class="pricing-card">
-                    <div>
-                        <div style="display:flex; align-items:center;">
-                            <span style="font-size:1.15rem; font-weight:800; color:#F8FAFC;">Campus & Bank API</span>
-                            <span class="price-pilot-badge">Pilot Tier</span>
-                        </div>
-                        <div style="font-size:0.8rem; color:#94A3B8;">For colleges, banks & fintechs</div>
-                        <div class="price-tag">₹4,999 <span style="font-size:0.85rem; font-weight:500; color:#94A3B8;">/ month</span></div>
-                        <ul class="pricing-feature-list">
-                            <li>High-throughput REST API (/v1/analyze)</li>
-                            <li>Student portal ERP integration</li>
-                            <li>Real-time regional threat telemetry</li>
-                            <li>Automated Chakshu & Cybercrime dispatch</li>
-                            <li>Custom institutional domain whitelist</li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-            """,
-            unsafe_allow_html=True,
+        pricing_html = (
+            '<div class="pricing-grid">'
+            '<div class="pricing-card">'
+            "<div>"
+            '<div style="font-size:1.15rem; font-weight:800; color:#F8FAFC;">Free Community</div>'
+            '<div style="font-size:0.8rem; color:#94A3B8;">For individual students & citizens</div>'
+            '<div class="price-tag">₹0 <span style="font-size:0.85rem; font-weight:500; color:#94A3B8;">/ forever</span></div>'
+            '<ul class="pricing-feature-list">'
+            "<li>Unlimited web message scanning</li>"
+            "<li>Bait-Hook-Ask transparent breakdown</li>"
+            "<li>Bilingual English & Hindi support</li>"
+            "<li>Tesseract screenshot OCR</li>"
+            "<li>Privacy-first design aligned with DPDP principles</li>"
+            "</ul>"
+            "</div>"
+            "</div>"
+            '<div class="pricing-card featured">'
+            "<div>"
+            '<div style="display:flex; align-items:center;">'
+            '<span style="font-size:1.15rem; font-weight:800; color:#F8FAFC;">Family Shield</span>'
+            '<span class="price-pilot-badge">Pilot Roadmap</span>'
+            "</div>"
+            '<div style="font-size:0.8rem; color:#94A3B8;">For parents, seniors & UPI beginners</div>'
+            '<div class="price-tag">₹99 <span style="font-size:0.85rem; font-weight:500; color:#94A3B8;">/ month</span></div>'
+            '<ul class="pricing-feature-list">'
+            "<li>Dedicated WhatsApp bot forwarding</li>"
+            "<li>Instant threat alerts for up to 5 family members</li>"
+            "<li>Automatic alerts on suspicious OTP asks</li>"
+            "<li>Direct one-touch 1930 incident logging</li>"
+            "<li>Weekly family security summary</li>"
+            "</ul>"
+            "</div>"
+            "</div>"
+            '<div class="pricing-card">'
+            "<div>"
+            '<div style="display:flex; align-items:center;">'
+            '<span style="font-size:1.15rem; font-weight:800; color:#F8FAFC;">Campus & Bank API</span>'
+            '<span class="price-pilot-badge">Pilot Tier</span>'
+            "</div>"
+            '<div style="font-size:0.8rem; color:#94A3B8;">For colleges, banks & fintechs</div>'
+            '<div class="price-tag">₹4,999 <span style="font-size:0.85rem; font-weight:500; color:#94A3B8;">/ month</span></div>'
+            '<ul class="pricing-feature-list">'
+            "<li>High-throughput REST API (/v1/analyze)</li>"
+            "<li>Student portal ERP integration</li>"
+            "<li>Real-time regional threat telemetry</li>"
+            "<li>Automated Chakshu & Cybercrime dispatch</li>"
+            "<li>Custom institutional domain whitelist</li>"
+            "</ul>"
+            "</div>"
+            "</div>"
+            "</div>"
         )
+        st.markdown(pricing_html, unsafe_allow_html=True)
 
         st.markdown(
             """
