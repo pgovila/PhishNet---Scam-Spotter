@@ -92,7 +92,8 @@ def load_config() -> dict:
         print("ERROR: submission.yaml not found in project root.")
         sys.exit(1)
     with open(config_path, encoding="utf-8") as fh:
-        return yaml.safe_load(fh)
+        raw_text = fh.read().replace("—", " - ").replace("–", " - ")
+        return yaml.safe_load(raw_text)
 
 
 # ── PDF Builder ───────────────────────────────────────────────────────────────
@@ -218,10 +219,10 @@ def build_pdf() -> None:
 
     members = team.get("members", [])
     if members:
-        member_data = [["Name", "Role"]]
+        member_data = [["Team Member"]]
         for m in members:
-            member_data.append([m.get("name", ""), m.get("role", "")])
-        member_table = Table(member_data, colWidths=[8 * cm, 8 * cm])
+            member_data.append([m.get("name", "")])
+        member_table = Table(member_data, colWidths=[15 * cm])
         member_table.setStyle(
             TableStyle(
                 [
@@ -235,6 +236,7 @@ def build_pdf() -> None:
                 ]
             )
         )
+        member_table.hAlign = "CENTER"
         story.append(member_table)
 
     story.append(Spacer(1, 1 * cm))
@@ -273,7 +275,7 @@ def build_pdf() -> None:
             "India sees over 30 lakh cyber-fraud complaints annually. "
             "Students, parents, and first-time UPI users are the most vulnerable. "
             "Scam messages exploit trust in brands, create urgency, and demand "
-            "OTPs or payments — yet most people cannot recognise these tactics.",
+            "OTPs or payments  -  yet most people cannot recognise these tactics.",
             body_style,
         )
     )
@@ -283,7 +285,7 @@ def build_pdf() -> None:
         Paragraph(
             "PhishNet is a web app that analyses suspicious SMS, WhatsApp, and email "
             "text using a transparent, rules-based engine. It highlights each warning "
-            "sign, explains it in plain language, and provides actionable next steps — "
+            "sign, explains it in plain language, and provides actionable next steps  -  "
             "including direct links to cybercrime.gov.in and the DoT Chakshu portal.",
             body_style,
         )
@@ -296,7 +298,7 @@ def build_pdf() -> None:
             "from named brands), <b>Hook</b> (urgency and fear), and <b>Ask</b> (risky "
             "actions like link clicks, payments, or credential sharing). Each layer "
             "contributes deterministic points. The score is always transparent and "
-            "reproducible — AI never sets it.",
+            "reproducible  -  AI never sets it.",
             body_style,
         )
     )
@@ -357,19 +359,19 @@ def build_pdf() -> None:
 
     arch_text = """
     <b>Component Overview:</b><br/><br/>
-    <b>1. Streamlit UI (app.py)</b> — User-facing interface with dark theme, risk gauge,
+    <b>1. Streamlit UI (app.py)</b>  -  User-facing interface with dark theme, risk gauge,
     highlighted message view, findings table, and report generator.<br/><br/>
-    <b>2. FastAPI API (api.py)</b> — RESTful endpoint for programmatic access with
+    <b>2. FastAPI API (api.py)</b>  -  RESTful endpoint for programmatic access with
     API key auth and rate limiting.<br/><br/>
-    <b>3. Engine (phishnet/engine.py)</b> — Pure-function scoring engine loaded from
+    <b>3. Engine (phishnet/engine.py)</b>  -  Pure-function scoring engine loaded from
     config/rules.yaml. Handles NFKC normalisation, regex matching, protective context,
     score calculation with caps and bonuses.<br/><br/>
-    <b>4. Link Analyser (phishnet/links.py)</b> — SSRF-safe URL extraction and offline
+    <b>4. Link Analyser (phishnet/links.py)</b>  -  SSRF-safe URL extraction and offline
     classification. Uses tldextract with bundled snapshot.<br/><br/>
-    <b>5. Enrichment (phishnet/enrich.py)</b> — Optional online checks via Safe Browsing,
+    <b>5. Enrichment (phishnet/enrich.py)</b>  -  Optional online checks via Safe Browsing,
     VirusTotal, URLhaus, and RDAP. Each behind its own env key with timeout and caching.<br/><br/>
-    <b>6. i18n (phishnet/i18n.py)</b> — English/Hindi string translations.<br/><br/>
-    <b>7. Report (phishnet/report.py)</b> — Plain-text report for police/cybercrime filing.
+    <b>6. i18n (phishnet/i18n.py)</b>  -  English/Hindi string translations.<br/><br/>
+    <b>7. Report (phishnet/report.py)</b>  -  Plain-text report for police/cybercrime filing.
     """
     story.append(Paragraph(arch_text, body_style))
 
@@ -438,7 +440,7 @@ def build_pdf() -> None:
         else:
             story.append(
                 Paragraph(
-                    f"Screenshot not found: {ss_path} — run scripts/capture_screenshots.py first",
+                    f"Screenshot not found: {ss_path}  -  run scripts/capture_screenshots.py first",
                     body_style,
                 )
             )
@@ -509,7 +511,7 @@ def build_pdf() -> None:
     story.append(Spacer(1, 2 * cm))
     story.append(
         Paragraph(
-            "Built with ❤️ for SETU 2026 — Forge Realm",
+            "Built for SETU 2026 - Forge Realm",
             tagline_style,
         )
     )
