@@ -1297,6 +1297,9 @@ def main() -> None:
     with tab_inspector:
         # ── Example buttons ───────────────────────────────────────────────
         examples = _load_examples()
+        if "input_text" not in st.session_state:
+            st.session_state["input_text"] = ""
+
         if examples:
             st.markdown(f"**{t('try_examples', lang)}:**")
             cols = st.columns(min(len(examples), 3))
@@ -1304,17 +1307,15 @@ def main() -> None:
                 col = cols[i % len(cols)]
                 with col:
                     if st.button(ex["label"], key=f"ex_{i}", use_container_width=True):
-                        st.session_state.input_text = ex["text"]
+                        st.session_state["input_text"] = ex["text"]
+                        st.rerun()
 
         # ── Input ─────────────────────────────────────────────────────────
-        default_text = st.session_state.get("input_text", "")
-
         user_input = st.text_area(
             t("input_label", lang),
-            value=default_text,
             height=150,
             max_chars=MAX_INPUT,
-            key="text_area_input",
+            key="input_text",
             placeholder="e.g., SBI ALERT: Your KYC is incomplete…",
         )
 
@@ -1325,7 +1326,6 @@ def main() -> None:
             key="screenshot_upload",
         )
 
-        ocr_text = ""
         if uploaded_file is not None:
             image_bytes = uploaded_file.read()
             with st.spinner("Extracting text from screenshot…"):
@@ -1334,7 +1334,9 @@ def main() -> None:
                     ocr_text = _ocr_claude(image_bytes)
             if ocr_text:
                 st.success(f"Extracted {len(ocr_text)} characters from screenshot")
-                user_input = ocr_text
+                st.session_state["input_text"] = ocr_text
+                st.rerun()
+            else:
                 st.warning(
                     "Could not extract text from screenshot. Please paste the text manually."
                 )
