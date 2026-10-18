@@ -172,8 +172,42 @@ def build_pdf() -> None:
     story: list = []
 
     # ── Page 1: Cover ─────────────────────────────────────────────────────
-    story.append(Spacer(1, 3 * cm))
-    story.append(Paragraph("🎣 PhishNet", title_style))
+    story.append(Spacer(1, 2.5 * cm))
+
+    logo_path = PROJECT_ROOT / "assets" / "logo.png"
+    if logo_path.exists():
+        logo_img = RLImage(str(logo_path), width=1.6 * cm, height=1.7 * cm)
+        title_para = Paragraph(
+            "<b>PhishNet</b>",
+            ParagraphStyle(
+                "CoverTitleInline",
+                parent=styles["Title"],
+                fontSize=32,
+                textColor=TEXT_WHITE,
+                leading=36,
+                alignment=0,
+            ),
+        )
+        title_table = Table([[logo_img, title_para]], colWidths=[1.8 * cm, 6.0 * cm])
+        title_table.setStyle(
+            TableStyle(
+                [
+                    ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+                    ("ALIGN", (0, 0), (0, 0), "RIGHT"),
+                    ("ALIGN", (1, 0), (1, 0), "LEFT"),
+                    ("LEFTPADDING", (1, 0), (1, 0), 8),
+                    ("RIGHTPADDING", (0, 0), (-1, -1), 0),
+                    ("TOPPADDING", (0, 0), (-1, -1), 0),
+                    ("BOTTOMPADDING", (0, 0), (-1, -1), 0),
+                ]
+            )
+        )
+        title_table.hAlign = "CENTER"
+        story.append(title_table)
+    else:
+        story.append(Paragraph("PhishNet", title_style))
+
+    story.append(Spacer(1, 0.4 * cm))
     story.append(Paragraph("Spot the bait. See the hook. Skip the ask.", tagline_style))
     story.append(Spacer(1, 1 * cm))
 
