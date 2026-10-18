@@ -1,6 +1,9 @@
-# PhishNet Demo Script — 90 Seconds
+# PhishNet Demo Script
 
-## Shot List
+> **Live Demo Video (Google Drive):** [Watch Demo](https://drive.google.com/file/d/1V0dC5USsqdSH4MZgnEnkm1MrpzEz1LMz/view?usp=sharing)  
+> **Live Web App:** [https://phishnet---scam-spotter-jtmjc8w6n2qvrchhtgc2qs.streamlit.app/](https://phishnet---scam-spotter-jtmjc8w6n2qvrchhtgc2qs.streamlit.app/)
+
+## Shot Outline & Key Highlights
 
 ### 0:00–0:10 — Intro
 - Show the PhishNet home page with tagline: "Spot the bait. See the hook. Skip the ask."

@@ -416,46 +416,31 @@ def build_pdf() -> None:
 
     story.append(
         Paragraph(
-            f'<b>Watch the demo:</b> <a href="{config["demo_video_url"]}" color="#3B82F6">'
-            f"{config['demo_video_url']}</a>",
+            f'<b>Watch the full video demonstration on Google Drive:</b><br/>'
+            f'<a href="{config["demo_video_url"]}" color="#3B82F6">{config["demo_video_url"]}</a>',
             body_style,
         )
     )
 
-    story.append(Spacer(1, 0.5 * cm))
-    qr_vid_img = RLImage(str(qr_video), 5 * cm, 5 * cm)
+    story.append(Spacer(1, 0.8 * cm))
+    qr_vid_img = RLImage(str(qr_video), 6 * cm, 6 * cm)
     qr_vid_img.hAlign = "CENTER"
     story.append(qr_vid_img)
-    story.append(Paragraph("Scan to watch", small_style))
+    story.append(Paragraph("Scan QR code or click link above to watch", small_style))
 
     story.append(Spacer(1, 1 * cm))
-    story.append(Paragraph("<b>Demo Timestamps</b>", body_style))
-    timestamps = [
-        ["Timestamp", "Scene"],
-        ["0:00–0:10", "App intro + tagline"],
-        ["0:10–0:25", "SBI KYC scam → HIGH risk analysis"],
-        ["0:25–0:35", "India Post parcel fee scam"],
-        ["0:35–0:45", "Hinglish KYC scam"],
-        ["0:45–0:55", "Class notice (no false alarm) + Genuine OTP"],
-        ["0:55–1:05", "Hindi toggle + report generation"],
-        ["1:05–1:15", "API demo with curl"],
-        ["1:15–1:30", "Summary + next steps"],
-    ]
-    ts_table = Table(timestamps, colWidths=[3 * cm, 11 * cm])
-    ts_table.setStyle(
-        TableStyle(
-            [
-                ("BACKGROUND", (0, 0), (-1, 0), ACCENT),
-                ("TEXTCOLOR", (0, 0), (-1, 0), TEXT_WHITE),
-                ("TEXTCOLOR", (0, 1), (-1, -1), TEXT_WHITE),
-                ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#333")),
-                ("FONTSIZE", (0, 0), (-1, -1), 10),
-                ("TOPPADDING", (0, 0), (-1, -1), 5),
-                ("BOTTOMPADDING", (0, 0), (-1, -1), 5),
-            ]
-        )
+    story.append(Paragraph("<b>Demonstration Highlights</b>", body_style))
+    highlights_text = (
+        "• <b>End-to-End Threat Deconstruction:</b> Real-time analysis of deceptive banking alerts (SBI KYC), "
+        "postal fee scams (India Post), and Hinglish urgency lures.<br/><br/>"
+        "• <b>Transparent Scoring &amp; Visual Evidence:</b> Live demonstration of deterministic "
+        "Bait &bull; Hook &bull; Ask triage, visual highlighted spans, and category points breakdown.<br/><br/>"
+        "• <b>False-Positive Resistance:</b> Verifying genuine college/university schedule notices and "
+        "protective context handling on legitimate banking OTP advisories.<br/><br/>"
+        "• <b>Bilingual Localization &amp; Cybercrime Filing:</b> Seamless English &amp; Hindi interface switching "
+        "and one-click complaint generation formatted for National Cyber Crime Reporting Portal (1930) and Sanchar Saathi."
     )
-    story.append(ts_table)
+    story.append(Paragraph(highlights_text, body_style))
 
     story.append(PageBreak())
 
