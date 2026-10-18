@@ -13,6 +13,13 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
+if sys.platform == "win32":
+    try:
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+        sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass
+
 import qrcode
 import requests
 import yaml
@@ -54,14 +61,17 @@ def validate_url(url: str, label: str) -> None:
     if not url or not url.strip():
         print(f"ERROR: {label} is empty in submission.yaml. Fill it in before building the PDF.")
         sys.exit(1)
+    clean_url = url.strip()
     try:
-        resp = requests.head(url.strip(), timeout=10, allow_redirects=True)
+        resp = requests.head(clean_url, timeout=10, allow_redirects=True)
         if resp.status_code >= 400:
-            print(f"ERROR: {label} ({url}) returned HTTP {resp.status_code}.")
+            resp = requests.get(clean_url, timeout=10, stream=True)
+        if resp.status_code >= 400:
+            print(f"ERROR: {label} ({clean_url}) returned HTTP {resp.status_code}.")
             sys.exit(1)
-        print(f"  ✓ {label}: {url}")
+        print(f"  ✓ {label}: {clean_url}")
     except requests.RequestException as e:
-        print(f"ERROR: {label} ({url}) is not reachable: {e}")
+        print(f"ERROR: {label} ({clean_url}) is not reachable: {e}")
         sys.exit(1)
 
 

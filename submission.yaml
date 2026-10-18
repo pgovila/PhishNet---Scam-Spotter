@@ -13,9 +13,8 @@ team:
 description: "PhishNet – Scam Spotter (“Spot the bait. See the hook. Skip the ask.”) is a web app for Problem Statement 1. Students and families paste a suspicious SMS, WhatsApp or email message, or upload a screenshot, and see exactly why it is or isn’t a scam. Instead of a black-box yes/no, a deterministic rules engine splits every message into Bait (borrowed trust or a too-good lure), Hook (urgency or fear) and Ask (a risky link, payment, or OTP/PIN request). It highlights each sign in the original text, adds up visible points, and returns a Low, Medium or High risk level with safe next steps linking to cybercrime.gov.in, the 1930 helpline and Sanchar Saathi. False alarms are limited by a cap for messages with no Ask and by recognising protective wording such as “never share your OTP”. Links are checked offline for lookalike domains, shorteners and homoglyphs, so no user-submitted URL is ever visited. The organiser’s SBI sample scores 100/100 High, and a switch reproduces the organiser’s exact points and tiers. It detects English and Hinglish with a Hindi/English interface, produces a copy-ready complaint report, stores no message text, and uses AI only optionally (off by default) to simplify explanations, never to set the score. A REST API serves institutions, backed by 42 automated tests. The revenue plan is free for individuals, with paid family plans and college or bank licences (API access, custom rule packs, anonymised scam-trend reports), and pricing to be validated in pilots."
 
 # Submission URLs
-# Update demo_video_url with your recorded demo video link for final Unstop portal upload
-demo_video_url: "https://youtu.be/DEMO_VIDEO_ID"
-live_url: "https://phishnet---scam-spotter-jtmjc8w6n2qvrchhtgc2qs.streamlit.app"
+demo_video_url: "https://drive.google.com/file/d/1V0dC5USsqdSH4MZgnEnkm1MrpzEz1LMz/view?usp=sharing"
+live_url: "https://phishnet---scam-spotter-jtmjc8w6n2qvrchhtgc2qs.streamlit.app/"
 github_url: "https://github.com/pgovila/PhishNet---Scam-Spotter"
 
 # Paths to screenshots (relative to project root).

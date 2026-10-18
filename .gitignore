@@ -42,3 +42,9 @@ PhishNet_Submission.pdf
 .ruff_cache/
 htmlcov/
 .coverage
+
+# Media & Videos
+*.mp4
+*.mov
+*.avi
+
