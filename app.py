@@ -1270,10 +1270,19 @@ def main() -> None:
 
     # ── Sidebar ───────────────────────────────────────────────────────────
     with st.sidebar:
+        default_lang_idx = 0
+        try:
+            if st.query_params.get("lang") == "hi":
+                default_lang_idx = 1
+        except Exception:
+            pass
+
         lang = st.selectbox(
             "🌐 Language / भाषा",
             options=["en", "hi"],
+            index=default_lang_idx,
             format_func=lambda x: "English" if x == "en" else "हिन्दी",
+            key="lang_select",
         )
 
         mode = "default"
@@ -1492,6 +1501,7 @@ def main() -> None:
                 with col:
                     if st.button(ex["label"], key=f"ex_{i}", use_container_width=True):
                         st.session_state["input_text"] = ex["text"]
+                        st.session_state.pop("analysis_state", None)
                         st.rerun()
 
         # ── Input ─────────────────────────────────────────────────────────
@@ -1519,6 +1529,7 @@ def main() -> None:
             if ocr_text:
                 st.success(f"Extracted {len(ocr_text)} characters from screenshot")
                 st.session_state["input_text"] = ocr_text
+                st.session_state.pop("analysis_state", None)
                 st.rerun()
             else:
                 st.warning(
@@ -1545,93 +1556,103 @@ def main() -> None:
 
             if not text:
                 st.warning(t("empty_msg", lang))
-                return
-
-            if len(text) < MIN_INPUT:
+                st.session_state.pop("analysis_state", None)
+            elif len(text) < MIN_INPUT:
                 st.warning(t("too_short", lang))
-                return
-
-            if len(text) > MAX_INPUT:
+                st.session_state.pop("analysis_state", None)
+            elif len(text) > MAX_INPUT:
                 st.error(t("too_long", lang))
-                return
-
-            # Rate limit
-            if not _check_rate_limit():
+                st.session_state.pop("analysis_state", None)
+            elif not _check_rate_limit():
                 st.error("⏳ Too many requests. Please wait a moment.")
-                return
+                st.session_state.pop("analysis_state", None)
+            else:
+                # ── Run analysis ──────────────────────────────────────────────
+                with st.spinner("Analysing…"):
+                    norm_text = normalise(text)
 
-            # ── Run analysis ──────────────────────────────────────────────
-            with st.spinner("Analysing…"):
-                norm_text = normalise(text)
-
-                # Link analysis (offline)
-                cfg = load_rules()
-                mode_cfg = cfg.get(mode, cfg["default"])
-                link_rule = next(
-                    (r for r in mode_cfg.get("rules", []) if r["id"] in ("ask_link", "rb_link")),
-                    None,
-                )
-                link_rule_id = link_rule["id"] if link_rule else "ask_link"
-                link_points = link_rule["points"] if link_rule else 25
-
-                link_findings = analyse_links(
-                    norm_text,
-                    link_rule_id=link_rule_id,
-                    link_points=link_points,
-                )
-
-                # Online enrichment (optional)
-                enrichment_results = []
-                urls = extract_urls(norm_text)
-                if urls:
-                    try:
-                        from phishnet.enrich import enrich_urls
-
-                        raw_urls = [u.raw for u in urls]
-                        enrichment_results = enrich_urls(raw_urls)
-                    except Exception:
-                        pass
-
-                # Check sender header spoofing (if provided)
-                if sender_id and sender_id.strip():
-                    sid = sender_id.strip()
-                    # If sender is a 10-digit mobile number (+91 or plain)
-                    clean_sid = re.sub(r"[\s+-]", "", sid)
-                    is_personal_mobile = (len(clean_sid) == 10 and clean_sid.isdigit()) or (
-                        len(clean_sid) == 12 and clean_sid.startswith("91")
+                    # Link analysis (offline)
+                    cfg = load_rules()
+                    mode_cfg = cfg.get(mode, cfg["default"])
+                    link_rule = next(
+                        (r for r in mode_cfg.get("rules", []) if r["id"] in ("ask_link", "rb_link")),
+                        None,
                     )
-                    if is_personal_mobile:
-                        # Append sender header spoof finding
-                        spoof_finding = Finding(
-                            rule_id="bait_sender_spoof",
-                            category="bait",
-                            label="Unregistered mobile sender spoofing authority",
-                            label_hi="व्यक्तिगत मोबाइल नंबर से संस्था का ढोंग",
-                            points=20,
-                            matched_text=sid,
-                            span=(0, 0),
-                            reason=f"Message arrived from personal phone number ({sid}). Genuine Indian banks and government bodies use registered TRAI alpha-headers (e.g. VK-HDFCBK, AX-SBINB), never personal 10-digit SIMs.",
-                            reason_hi=f"संदेश व्यक्तिगत मोबाइल नंबर ({sid}) से भेजा गया है। असली बैंक और सरकारी विभाग कभी 10-अंकीय मोबाइल नंबर से अलर्ट नहीं भेजते।",
+                    link_rule_id = link_rule["id"] if link_rule else "ask_link"
+                    link_points = link_rule["points"] if link_rule else 25
+
+                    link_findings = analyse_links(
+                        norm_text,
+                        link_rule_id=link_rule_id,
+                        link_points=link_points,
+                    )
+
+                    # Online enrichment (optional)
+                    enrichment_results = []
+                    urls = extract_urls(norm_text)
+                    if urls:
+                        try:
+                            from phishnet.enrich import enrich_urls
+
+                            raw_urls = [u.raw for u in urls]
+                            enrichment_results = enrich_urls(raw_urls)
+                        except Exception:
+                            pass
+
+                    # Check sender header spoofing (if provided)
+                    if sender_id and sender_id.strip():
+                        sid = sender_id.strip()
+                        # If sender is a 10-digit mobile number (+91 or plain)
+                        clean_sid = re.sub(r"[\s+-]", "", sid)
+                        is_personal_mobile = (len(clean_sid) == 10 and clean_sid.isdigit()) or (
+                            len(clean_sid) == 12 and clean_sid.startswith("91")
                         )
-                        link_findings.append(spoof_finding)
+                        if is_personal_mobile:
+                            spoof_finding = Finding(
+                                rule_id="bait_sender_spoof",
+                                category="bait",
+                                label="Unregistered mobile sender spoofing authority",
+                                label_hi="व्यक्तिगत मोबाइल नंबर से संस्था का ढोंग",
+                                points=20,
+                                matched_text=sid,
+                                span=(0, 0),
+                                reason=f"Message arrived from personal phone number ({sid}). Genuine Indian banks and government bodies use registered TRAI alpha-headers (e.g. VK-HDFCBK, AX-SBINB), never personal 10-digit SIMs.",
+                                reason_hi=f"संदेश व्यक्तिगत मोबाइल नंबर ({sid}) से भेजा गया है। असली बैंक और सरकारी विभाग कभी 10-अंकीय मोबाइल नंबर से अलर्ट नहीं भेजते।",
+                            )
+                            link_findings.append(spoof_finding)
 
-                # Core analysis (unified with optional enrichment)
-                result = analyse(
-                    text,
-                    link_findings=link_findings,
-                    enrichment_results=enrichment_results,
-                    mode=mode,
-                )
+                    # Core analysis (unified with optional enrichment)
+                    result = analyse(
+                        text,
+                        link_findings=link_findings,
+                        enrichment_results=enrichment_results,
+                        mode=mode,
+                    )
 
-                # AI simplification (optional)
-                ai_explanations: dict[str, str] = {}
-                if ai_enabled and result.findings:
-                    ai_explanations = _ai_simplify(result.findings, lang)
+                    # AI simplification (optional)
+                    ai_explanations: dict[str, str] = {}
+                    if ai_enabled and result.findings:
+                        ai_explanations = _ai_simplify(result.findings, lang)
 
-                # Record anonymous stats
-                _record_stats(result)
+                    # Record anonymous stats
+                    _record_stats(result)
 
-            # ── Display results ───────────────────────────────────────────
+                    # Save complete state into session_state
+                    st.session_state["analysis_state"] = {
+                        "result": result,
+                        "text": text,
+                        "enrichment_results": enrichment_results,
+                        "ai_explanations": ai_explanations,
+                    }
+
+        # ── Display results if available in session_state ─────────────────
+        if "analysis_state" in st.session_state:
+            _state = st.session_state["analysis_state"]
+            result = _state["result"]
+            text = _state["text"]
+            enrichment_results = _state.get("enrichment_results", [])
+            ai_explanations = _state.get("ai_explanations", {})
+
             st.markdown("---")
 
             # Score gauge and tier badge
