@@ -263,6 +263,87 @@ def _check_institutional_context(
                 f.reason_hi = f"आधिकारिक संस्थागत सूचना: सत्यापित पोर्टल ({urls[0].full_domain})।"
 
 
+def _check_transaction_context(
+    findings: list[Finding],
+    norm_text: str,
+) -> None:
+    """Neutralize false urgency in authentic bank debit/credit dispute notifications.
+
+    E.g.: 'Rs 1500 debited from SBI a/c 1234 on 18-Oct. If not done by you, call 1800112211 immediately. -SBI'
+    The 'call ... immediately' is an RBI-mandated dispute instruction, not a scam pressure hook.
+    """
+    # Only applies if there is NO malicious ask (no link, no OTP/credential ask, no payment ask)
+    has_ask = any(f.category == "ask" and not f.protective and f.points > 0 for f in findings)
+    if has_ask:
+        return
+
+    # Check for authentic transaction markers
+    tx_pattern = re.search(
+        r"\b(?:debited|credited|withdrawn|spent|transferred|a/c\s*(?:no\.?|\*+|x+)?\s*\d+)\b",
+        norm_text,
+        re.I,
+    )
+    # Check for dispute advisory phrases
+    dispute_pattern = re.search(
+        r"\b(?:if\s*not\s*(?:done\s*)?(?:by\s*)?you|if\s*not\s*you|if\s*unauthorized|report\s*(?:fraud|unauthorized))\b",
+        norm_text,
+        re.I,
+    )
+
+    if tx_pattern and dispute_pattern:
+        for f in findings:
+            if f.rule_id in ("hook_pressure", "rb_urgency"):
+                f.points = 0
+                f.protective = True
+                f.reason = "Protective bank advisory — instructions to report unauthorized transactions immediately (RBI customer safety mandate)."
+                f.reason_hi = (
+                    "सुरक्षा बैंक सलाह — अनधिकृत लेनदेन की तुरंत शिकायत करने के निर्देश (RBI सुरक्षा निर्देश)।"
+                )
+
+
+def _deduplicate_findings_keep_spans(findings: list[Finding]) -> list[Finding]:
+    """Keep all matched spans for highlighting, but award points only once per rule."""
+    if not findings:
+        return []
+
+    # Filter exact duplicate spans within the same rule
+    seen_spans_per_rule: dict[str, set[tuple[int, int]]] = {}
+    awarded_rules: set[str] = set()
+    result: list[Finding] = []
+
+    # Sort so that highest-point finding per rule comes first
+    sorted_f = sorted(findings, key=lambda f: -f.points)
+
+    for f in sorted_f:
+        rule_seen = seen_spans_per_rule.setdefault(f.rule_id, set())
+        if f.span in rule_seen:
+            continue
+        rule_seen.add(f.span)
+
+        if f.rule_id not in awarded_rules:
+            awarded_rules.add(f.rule_id)
+            result.append(f)
+        else:
+            # Additional phrase for this rule: keep for highlighting with points=0
+            dup_f = Finding(
+                rule_id=f.rule_id,
+                category=f.category,
+                label=f.label,
+                label_hi=f.label_hi,
+                points=0,
+                matched_text=f.matched_text,
+                span=f.span,
+                reason=f.reason,
+                reason_hi=f.reason_hi,
+                protective=f.protective,
+            )
+            result.append(dup_f)
+
+    # Sort by span position ascending
+    result.sort(key=lambda f: f.span[0])
+    return result
+
+
 # ── Score calculation ─────────────────────────────────────────────────────────
 
 
@@ -278,7 +359,7 @@ def _compute_score(
 
     raw = sum(f.points for f in active_findings)
 
-    categories = {f.category for f in active_findings}
+    categories = {f.category for f in active_findings if f.points > 0}
     has_ask = "ask" in categories
     has_bait_or_hook = bool(categories & {"bait", "hook"})
     act_now = False
@@ -391,13 +472,6 @@ def analyse(
         else:
             all_findings.extend(matched)
 
-    # De-duplicate: keep one finding per rule ID (highest-point span)
-    deduped: dict[str, Finding] = {}
-    for f in all_findings:
-        if f.rule_id not in deduped or f.points > deduped[f.rule_id].points:
-            deduped[f.rule_id] = f
-    all_findings = list(deduped.values())
-
     # Check protective context for OTP findings (sentence-scoped)
     protective_cfg = mode_cfg.get("protective_context", {})
     otp_findings = _check_protective_context(
@@ -405,18 +479,7 @@ def analyse(
         otp_findings,
         protective_cfg.get("patterns", []),
     )
-
-    # De-duplicate OTP findings
-    if otp_findings:
-        best_otp = max(otp_findings, key=lambda f: f.points)
-        if best_otp.protective:
-            all_findings.append(best_otp)
-        else:
-            deduped_otp: dict[str, Finding] = {}
-            for f in otp_findings:
-                if f.rule_id not in deduped_otp or f.points > deduped_otp[f.rule_id].points:
-                    deduped_otp[f.rule_id] = f
-            all_findings.extend(deduped_otp.values())
+    all_findings.extend(otp_findings)
 
     # Add link findings (computed externally by links.py)
     if link_findings:
@@ -424,6 +487,12 @@ def analyse(
 
     # Neutralize payment and urgency if all links point strictly to official/institutional portals
     _check_institutional_context(all_findings, norm_text)
+
+    # Neutralize urgency if authentic bank transaction alert with dispute advisory
+    _check_transaction_context(all_findings, norm_text)
+
+    # Keep all non-overlapping matched spans for highlighting, while deduplicating points per rule
+    all_findings = _deduplicate_findings_keep_spans(all_findings)
 
     # Compute base score
     raw_score, score, act_now = _compute_score(all_findings, mode_cfg)

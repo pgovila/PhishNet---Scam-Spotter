@@ -111,12 +111,12 @@ STRINGS: dict[str, dict[str, str]] = {
         "hi": "स्कोरिंग मोड",
     },
     "dpdp_notice": {
-        "en": "🛡️ DPDP Act 2023 Compliant: Zero-retention privacy architecture. Your personal data, phone numbers, and messages are never stored, logged, or shared.",
-        "hi": "🛡️ DPDP अधिनियम 2023 के अनुरूप: शून्य-डेटा प्रतिधारण सुरक्षा। आपकी व्यक्तिगत जानकारी, फोन नंबर और संदेश कभी भी सहेजे, लॉग या साझा नहीं किए जाते हैं।",
+        "en": "Designed around DPDP principles (data minimisation, no message retention). Core analysis runs locally without storing message content. (If optional AI or threat lookups are turned on, anonymized queries are sent externally).",
+        "hi": "DPDP सिद्धांतों (डेटा न्यूनीकरण, शून्य संदेश प्रतिधारण) पर आधारित। मुख्य विश्लेषण स्थानीय रूप से चलता है और संदेश संग्रहीत नहीं होते। (यदि वैकल्पिक AI या थ्रेट लुकअप सक्षम हैं, तो अनामीकृत विवरण बाहर भेजे जाते हैं)।",
     },
     "footer_privacy": {
-        "en": "🔒 100% DPDP Act 2023 Compliant · Zero-Retention Privacy · Messages are processed in ephemeral memory and never stored.",
-        "hi": "🔒 भारत के DPDP अधिनियम 2023 के पूर्णतः अनुरूप · शून्य डेटा प्रतिधारण · संदेश केवल अल्पकालिक मेमोरी में विश्लेषित होते हैं और कभी संग्रहीत नहीं होते।",
+        "en": "Designed around DPDP Principles · Data Minimisation & Zero Retention · Core analysis runs in ephemeral memory",
+        "hi": "DPDP सिद्धांतों पर आधारित · डेटा न्यूनीकरण एवं शून्य प्रतिधारण · मुख्य विश्लेषण अल्पकालिक मेमोरी में चलता है",
     },
 }
 

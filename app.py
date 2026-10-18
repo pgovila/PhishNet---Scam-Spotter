@@ -116,7 +116,10 @@ def _record_stats(result: AnalysisResult) -> None:
 
 
 def _get_telemetry_stats() -> dict[str, Any]:
-    """Fetch aggregate anonymous telemetry counters from SQLite with baseline calibration."""
+    """Fetch aggregate anonymous telemetry counters from SQLite.
+
+    Reflects actual recorded scans with zero hardcoded offsets.
+    """
     from collections import defaultdict
 
     total_scans = 0
@@ -144,27 +147,20 @@ def _get_telemetry_stats() -> dict[str, Any]:
     except Exception:
         pass
 
-    # Baseline calibration counts (calibrated with 100-message benchmark)
-    baseline_offset = 142
-    total_effective = total_scans + baseline_offset
-    high_count = tier_counts.get("high", 0) + 64
-    med_count = tier_counts.get("medium", 0) + 31
-    low_count = tier_counts.get("low", 0) + 47
-
     top_tactics = [
-        ("Account Threat / Block Threats", rule_freq.get("hook_fear", 0) + 62),
-        ("Fake Urgency & Immediate Demands", rule_freq.get("hook_pressure", 0) + 54),
-        ("Risky / Look-alike Domains", rule_freq.get("ask_link", 0) + 49),
-        ("OTP & Security Code Harvest", rule_freq.get("ask_otp", 0) + 41),
-        ("Impersonated Bank Authorities", rule_freq.get("bait_brand", 0) + 82),
-        ("Dangerous APK Sideloading", rule_freq.get("ask_apk_install", 0) + 28),
+        ("Account Threat / Block Threats", rule_freq.get("hook_fear", 0)),
+        ("Fake Urgency & Immediate Demands", rule_freq.get("hook_pressure", 0)),
+        ("Risky / Look-alike Domains", rule_freq.get("ask_link", 0)),
+        ("OTP & Security Code Harvest", rule_freq.get("ask_otp", 0)),
+        ("Impersonated Bank Authorities", rule_freq.get("bait_brand", 0)),
+        ("Dangerous APK Sideloading", rule_freq.get("ask_apk_install", 0)),
     ]
 
     return {
-        "total_scans": total_effective,
-        "high_count": high_count,
-        "med_count": med_count,
-        "low_count": low_count,
+        "total_scans": total_scans,
+        "high_count": tier_counts.get("high", 0),
+        "med_count": tier_counts.get("medium", 0),
+        "low_count": tier_counts.get("low", 0),
         "top_tactics": top_tactics,
     }
 
@@ -1083,19 +1079,16 @@ def _render_gauge(score: int, lang: str) -> None:
 def _render_tier_badge(tier: str, lang: str) -> None:
     """Render the tier badge with vibrant styling and guidance subtitle."""
     badge_text = t(f"tier_{tier}", lang)
-    tier_icons = {"high": "⛔", "medium": "⚠️", "low": "🛡️"}
     tier_subtitles = {
         "high": "High-confidence deception markers detected. Refrain from clicking links or sharing any OTP/passwords.",
         "medium": "Unverified or suspicious urgency signals detected. Verify authenticity before proceeding.",
         "low": "No high-risk malicious asks detected. Appears consistent with normal notifications or protective alerts.",
     }
-    icon = tier_icons.get(tier, "🔍")
     subtitle = tier_subtitles.get(tier, "")
     st.markdown(
         f"""
     <div class="phishnet-card tier-card {_tier_css(tier)}">
         <div class="tier-badge-pill {_tier_css(tier)}">
-            <span>{icon}</span>
             <span>{badge_text}</span>
         </div>
         <div class="tier-subtitle">{subtitle}</div>
@@ -1106,7 +1099,7 @@ def _render_tier_badge(tier: str, lang: str) -> None:
 
 
 def _render_findings(findings: list[Finding], lang: str, ai_explanations: dict[str, str]) -> None:
-    """Render the findings table grouped by category."""
+    """Render the findings table grouped by category with clean HTML cards."""
     categories = {"bait": [], "hook": [], "ask": []}
     for f in findings:
         cat = f.category if f.category in categories else "ask"
@@ -1128,44 +1121,65 @@ def _render_findings(findings: list[Finding], lang: str, ai_explanations: dict[s
             unsafe_allow_html=True,
         )
 
+        # Group by rule_id so multiple matched phrases are displayed neatly together
+        grouped_by_rule: dict[str, list[Finding]] = {}
         for f in cat_findings:
-            finding_css = f"finding-{cat}" if not f.protective else "finding-protective"
+            grouped_by_rule.setdefault(f.rule_id, []).append(f)
 
-            label = f.label_hi if lang == "hi" else f.label
-            if f.protective:
+        for _rule_id, rule_group in grouped_by_rule.items():
+            primary_f = max(rule_group, key=lambda f: f.points)
+            is_protective = any(f.protective for f in rule_group)
+            total_points = max(f.points for f in rule_group) if not is_protective else 0
+
+            finding_css = f"finding-{cat}" if not is_protective else "finding-protective"
+
+            label = primary_f.label_hi if lang == "hi" else primary_f.label
+            if is_protective:
                 label = t("protective_label", lang)
 
             points_html = (
                 '<span class="finding-points points-zero">0 pts</span>'
-                if f.protective
-                else f'<span class="finding-points points-positive">+{f.points} pts</span>'
+                if is_protective
+                else f'<span class="finding-points points-positive">+{total_points} pts</span>'
             )
 
-            reason_text = f.reason_hi if lang == "hi" and f.reason_hi else f.reason
+            # Collect unique matched phrases in this rule
+            unique_phrases = []
+            seen_phrases = set()
+            for f in rule_group:
+                cleaned = f.matched_text.strip()
+                if cleaned and cleaned not in seen_phrases:
+                    seen_phrases.add(cleaned)
+                    unique_phrases.append(cleaned)
+
+            matches_display = " · ".join(f'"{html.escape(m[:80])}"' for m in unique_phrases)
+
+            reason_text = (
+                primary_f.reason_hi if lang == "hi" and primary_f.reason_hi else primary_f.reason
+            )
             reason_html = ""
             if reason_text:
                 why_label = "यह क्यों महत्वपूर्ण है" if lang == "hi" else "Why it matters"
                 reason_html = f'<div class="finding-reason">💡 <strong>{why_label}:</strong> {html.escape(reason_text)}</div>'
 
             ai_html = ""
-            if f.rule_id in ai_explanations:
+            if primary_f.rule_id in ai_explanations:
                 ai_label = t("ai_simplified", lang)
-                ai_html = f'<div class="finding-reason">🤖 {ai_label}: {html.escape(ai_explanations[f.rule_id])}</div>'
+                ai_html = f'<div class="finding-reason">🤖 {ai_label}: {html.escape(ai_explanations[primary_f.rule_id])}</div>'
 
-            st.markdown(
-                f"""
-            <div class="finding-row {finding_css}">
-                <div>
-                    <div class="finding-label">{html.escape(label)}</div>
-                    <div class="finding-match">"{html.escape(f.matched_text[:80])}"</div>
-                    {reason_html}
-                    {ai_html}
-                </div>
-                {points_html}
-            </div>
-            """,
-                unsafe_allow_html=True,
-            )
+            # Build card strictly without blank lines or 4-space markdown indentation
+            inner_parts = [
+                f'<div class="finding-label">{html.escape(label)}</div>',
+                f'<div class="finding-match">{matches_display}</div>',
+            ]
+            if reason_html:
+                inner_parts.append(reason_html)
+            if ai_html:
+                inner_parts.append(ai_html)
+
+            inner_content = "".join(inner_parts)
+            card_html = f'<div class="finding-row {finding_css}"><div>{inner_content}</div>{points_html}</div>'
+            st.markdown(card_html, unsafe_allow_html=True)
 
 
 def _render_next_steps(result: AnalysisResult, lang: str) -> None:
@@ -1259,7 +1273,7 @@ def main() -> None:
         <div class="dpdp-shield-card">
             <div class="dpdp-icon-box">🛡️</div>
             <div class="dpdp-content">
-                <span class="dpdp-badge">DPDP ACT 2023</span>
+                <span class="dpdp-badge">DPDP PRINCIPLES</span>
                 {html.escape(dpdp_text.replace("🛡️ ", ""))}
             </div>
         </div>
@@ -1513,11 +1527,19 @@ def main() -> None:
     with tab_telemetry:
         st.markdown("### 📊 Threat Intelligence & Regional Telemetry")
         st.markdown(
-            "Aggregated telemetry counters from PhishNet scans across Indian user channels. "
-            "In strict compliance with the **DPDP Act 2023**, no personal messages, phone numbers, or PII are retained."
+            "Real-time anonymous telemetry recorded from message analyses processed on this deployment instance. "
+            "Designed around **DPDP principles** (data minimisation, zero message content retention). "
+            "<br><span style='font-size:0.8rem; color:#64748B;'>*Note: On ephemeral hosting like Streamlit Community Cloud, local SQLite resets on app redeployment/restart. Production multi-tenant deployments connect to an external persistent store.</span>",
+            unsafe_allow_html=True,
         )
 
         stats = _get_telemetry_stats()
+
+        if stats["total_scans"] == 0:
+            st.info(
+                "💡 **Instance Telemetry Ready**: 0 scans recorded yet on this fresh deployment. "
+                "Analyze messages in the **Scam Inspector** tab to see live counters update here in real time."
+            )
 
         st.markdown(
             f"""
@@ -1543,53 +1565,73 @@ def main() -> None:
             unsafe_allow_html=True,
         )
 
-        # 100-Message Benchmark Evaluation Card
+        # Dual Evaluation Benchmark Card
         st.markdown(
             """
             <div class="benchmark-banner">
-                <h4 style="margin:0 0 6px 0; color: #34D399;">🎯 Authenticity: 100-Message Empirical Benchmark</h4>
+                <h4 style="margin:0 0 6px 0; color: #34D399;">🎯 Authenticity: Dual Evaluation Benchmark</h4>
                 <div style="font-size: 0.88rem; color: #CBD5E1;">
-                    Evaluated on a balanced ground-truth dataset of 100 realistic Indian communications (50 confirmed scams across banking, digital arrest, courier, APKs; and 50 authentic transactional/academic notices).
+                    We report performance across both our curated regression suite and an un-tuned fresh test set:
                 </div>
-                <div class="benchmark-grid">
-                    <div>
-                        <div class="benchmark-stat-num">95.0%</div>
-                        <div class="benchmark-stat-lbl">Accuracy</div>
-                    </div>
-                    <div>
-                        <div class="benchmark-stat-num">95.9%</div>
-                        <div class="benchmark-stat-lbl">Precision</div>
-                    </div>
-                    <div>
-                        <div class="benchmark-stat-num">94.0%</div>
-                        <div class="benchmark-stat-lbl">Recall</div>
-                    </div>
-                    <div>
-                        <div class="benchmark-stat-num">95.0%</div>
-                        <div class="benchmark-stat-lbl">F1-Score</div>
-                    </div>
+                <div style="margin-top: 14px; overflow-x: auto;">
+                    <table style="width: 100%; font-size: 0.88rem; border-collapse: collapse; text-align: left; color: #E2E8F0;">
+                        <thead>
+                            <tr style="border-bottom: 1px solid rgba(255,255,255,0.15); color: #38BDF8;">
+                                <th style="padding: 6px 8px;">Evaluation Dataset</th>
+                                <th style="padding: 6px 8px;">Accuracy</th>
+                                <th style="padding: 6px 8px;">Precision</th>
+                                <th style="padding: 6px 8px;">Recall</th>
+                                <th style="padding: 6px 8px;">Key Characteristic</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr style="border-bottom: 1px solid rgba(255,255,255,0.06);">
+                                <td style="padding: 6px 8px; font-weight: 600;">100-Msg Curated Regression Set</td>
+                                <td style="padding: 6px 8px; color: #34D399; font-weight: 700;">95.0%</td>
+                                <td style="padding: 6px 8px; color: #34D399; font-weight: 700;">95.9%</td>
+                                <td style="padding: 6px 8px; color: #34D399; font-weight: 700;">94.0%</td>
+                                <td style="padding: 6px 8px; color: #94A3B8;">Balanced Indian scam typologies</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 6px 8px; font-weight: 600;">30-Msg Fresh / Blind Test Set</td>
+                                <td style="padding: 6px 8px; color: #34D399; font-weight: 700;">87.0%</td>
+                                <td style="padding: 6px 8px; color: #34D399; font-weight: 700;">100%</td>
+                                <td style="padding: 6px 8px; color: #F59E0B; font-weight: 700;">73.3%</td>
+                                <td style="padding: 6px 8px; color: #94A3B8;">0 false alarms in 15 genuine notices</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div style="font-size: 0.8rem; color: #94A3B8; margin-top: 10px;">
+                    *Fresh test feedback (4 initial misses: electricity cutoffs, hotel task lures, 6-digit codes, OTT payment updates) directly drove rule refinements without sacrificing 100% precision.
                 </div>
             </div>
             """,
             unsafe_allow_html=True,
         )
 
-        st.markdown("#### 🚨 Top Detected Attack Tactics in India")
-        for tactic, count in stats["top_tactics"]:
-            max_c = max(cnt for _, cnt in stats["top_tactics"]) or 1
-            pct = int((count / max_c) * 100)
+        st.markdown("#### 🚨 Top Detected Attack Tactics on this Instance")
+        total_hits = sum(cnt for _, cnt in stats["top_tactics"])
+        if total_hits == 0:
             st.markdown(
-                f"""
-                <div style="display:flex; justify-content:space-between; margin-bottom:4px; font-size:0.9rem; color:#E2E8F0;">
-                    <span>{tactic}</span>
-                    <span style="font-weight:700; color:#38BDF8;">{count} occurrences</span>
-                </div>
-                <div style="background:rgba(255,255,255,0.06); border-radius:6px; height:8px; width:100%; margin-bottom:14px;">
-                    <div style="background:linear-gradient(90deg, #38BDF8, #818CF8); height:100%; border-radius:6px; width:{pct}%;"></div>
-                </div>
-                """,
+                "<div style='font-size:0.85rem; color:#64748B; margin-bottom:12px;'>No attack tactic patterns recorded yet.</div>",
                 unsafe_allow_html=True,
             )
+        else:
+            for tactic, count in stats["top_tactics"]:
+                pct = int((count / max(total_hits, 1)) * 100)
+                st.markdown(
+                    f"""
+                    <div style="display:flex; justify-content:space-between; margin-bottom:4px; font-size:0.9rem; color:#E2E8F0;">
+                        <span>{tactic}</span>
+                        <span style="font-weight:700; color:#38BDF8;">{count} occurrences</span>
+                    </div>
+                    <div style="background:rgba(255,255,255,0.06); border-radius:6px; height:8px; width:100%; margin-bottom:14px;">
+                        <div style="background:linear-gradient(90deg, #38BDF8, #818CF8); height:100%; border-radius:6px; width:{pct}%;"></div>
+                    </div>
+                    """,
+                    unsafe_allow_html=True,
+                )
 
     # ══════════════════════════════════════════════════════════════════════
     # TAB 3: FOR COLLEGES, BANKS & FINTECHS (MONETIZATION & PRICING)
@@ -1607,7 +1649,7 @@ def main() -> None:
                 <h4 style="margin-top:0; color:#38BDF8;">💡 The Institutional Business Case: Who Pays and Why</h4>
                 <div style="font-size: 0.9rem; color: #CBD5E1; line-height: 1.7;">
                     <p><strong>1. University Campuses & Colleges (Dean of Student Affairs / IT):</strong><br>
-                    Over 40% of first-year college students encounter fraudulent semester fee demands or fake internship job offers. A single compromised fee payment (₹35,000 to ₹1,50,000) results in distress, financial hardship, and campus police inquiries. Subscribing to PhishNet Campus API pays for itself by preventing a single fee scam.</p>
+                    College students navigating university fee deadlines and new hostel admissions are frequent targets of fraudulent fee portals and fake internship offers. A single compromised fee payment (₹35,000 to ₹1,50,000) causes severe distress and campus disruption. Subscribing to PhishNet Campus API pays for itself by preventing a single fee fraud incident.</p>
                     <p><strong>2. Regional Rural Banks & Credit Cooperatives:</strong><br>
                     Community banks lose customer trust when elderly and first-time UPI users fall for KYC suspension threats or remote access screen sharing (AnyDesk). Preventing fraud at the SMS layer reduces ombudsman complaints and dispute resolution overhead (avg. ₹2,500/case investigation cost).</p>
                     <p><strong>3. Fintech NBFCs & Payment Aggregators:</strong><br>

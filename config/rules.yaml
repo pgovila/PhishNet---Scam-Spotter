@@ -86,6 +86,8 @@ default:
         - '\bMyntra\b'
         - '\bSwiggy\b'
         - '\bZomato\b'
+        # Entertainment & Streaming
+        - '\b(?:Netflix|Prime\s*Video|Disney\+?\s*Hotstar|Hotstar|Spotify)\b'
         # Global
         - '\bMicrosoft\b'
         - '\bApple\b'
@@ -94,7 +96,7 @@ default:
         - '\bFedEx\b'
         - '\bDHL\b'
         # Hindi brands
-        - '\b(?:एसबीआई|एचडीएफसी|आईसीआईसीआई|पेटीएम|फोनपे|गूगल\s*पे|सीबीआई|ईडी|पुलिस)\b'
+        - '\b(?:एसबीआई|एचडीएफसी|आईसीआईसीआई|पेटीएम|फोनपे|गूगल\s*पे|सीबीआई|ईडी|पुलिस|नेटफ्लिक्स|हॉटस्टार)\b'
 
     - id: bait_lure
       category: bait
@@ -111,6 +113,7 @@ default:
         - '\b(?:claim\s*(?:your|now|today))\b'
         - '\b(?:part[- ]time\s*job|earn\s*(?:Rs|₹|INR)?\s*\d+\s*(?:to|-)\s*\d+\s*(?:per\s*day|daily))\b'
         - '\b(?:like\s*(?:youtube|videos|posts)\s*and\s*earn)\b'
+        - '\b(?:(?:rate|review)\s*(?:hotels?|restaurants?|movies?)|hotel\s*ratings?|hotel\s*review|task\s*to\s*earn)\b'
         - '\b(?:telegram\s*(?:task|group|channel)\s*for\s*(?:income|earn|profit))\b'
         - '\b(?:guaranteed\s*(?:returns?|profit)|crypto\s*investment\s*scheme)\b'
         - '\b(?:jeeta|jeet\s*gaye|inam|inaam|muft)\b'
@@ -122,8 +125,8 @@ default:
       label: Urgency / pressure
       label_hi: "जल्दबाज़ी/दबाव"
       points: 15
-      reason: "Creates artificial time urgency ('immediately', 'within 2 hours') to prevent you from pausing or verifying."
-      reason_hi: "कृत्रिम जल्दबाज़ी ('तुरंत', '2 घंटे में') पैदा की गई है ताकि आपको सोचने या सत्यापन करने का समय न मिले।"
+      reason: "Creates artificial time urgency ('immediately', 'within 2 hours', 'tonight') to prevent you from pausing or verifying."
+      reason_hi: "कृत्रिम जल्दबाज़ी ('तुरंत', '2 घंटे में', 'आज रात') पैदा की गई है ताकि आपको सोचने या सत्यापन करने का समय न मिले।"
       patterns:
         - '\b(?:immediately|urgent|urgently|right\s*now)\b'
         - '\b(?:within\s*\d+\s*(?:hour|hr|minute|min)s?)\b'
@@ -131,27 +134,28 @@ default:
         - '\b(?:today\s+only|valid\s+today|expires?\s+today|pay\s+today|last\s+day\s+today|act\s+today)\b'
         - '\b(?:expir(?:e|es|ing|ed)\s*(?:today|soon|tonight))\b'
         - '\b(?:turant|fauran|jaldi|abhi)\b'
-        - '\b(?:aaj\s*hi|aaj\s*tak|aaj\s*ke\s*andar)\b'
-        - '\b(?:तुरंत|फ़ौरन|फौरन|जल्दी|अभी|आज\s*ही|आज\s*तक)\b'
+        - '\b(?:aaj\s*hi|aaj\s*tak|aaj\s*ke\s*andar|aaj\s*raat)\b'
+        - '\b(?:तुरंत|फ़ौरन|फौरन|जल्दी|अभी|आज\s*ही|आज\s*तक|आज\s*रात)\b'
 
     - id: hook_fear
       category: hook
       label: Fear / threat
       label_hi: "डर/धमकी"
       points: 15
-      reason: "Uses threats of account blockage, legal action, arrest, or service cutoff to trigger panic."
-      reason_hi: "खाता बंद होने, कानूनी कार्रवाई, गिरफ्तारी, या बिजली/सिम कटने का डर दिखाकर घबराहट पैदा की जा रही है।"
+      reason: "Uses threats of account blockage, legal action, arrest, electricity cutoff, or service cancellation to trigger panic."
+      reason_hi: "खाता बंद होने, कानूनी कार्रवाई, गिरफ्तारी, बिजली कटने, या सिम/सब्सक्रिप्शन निलंबन का डर दिखाकर घबराहट पैदा की जा रही है।"
       patterns:
         - '\b(?:KYC\b.{0,25}?\b(?:incomplete|expire[ds]?|pending|update|verify|verification))\b'
         - '\b(?:account\b.{0,30}?\b(?:block(?:ed)?|suspend(?:ed)?|deactivat(?:e|ed)|clos(?:e|ed)|restrict(?:ed)?))\b'
         - '\b(?:legal\s*action|police\s*complaint|arrest\s*warrant|court\s*notice)\b'
-        - '\b(?:SIM\s*(?:deactivat(?:e|ed)|block(?:ed)?|suspend(?:ed)?))\b'
-        - '\b(?:electricity\b.{0,25}?\b(?:disconnect(?:ed)?|cut\s*off|power\s*cut))\b'
+        - '\b(?:SIM\b.{0,25}?\b(?:deactivat(?:e|ed)|block(?:ed)?|suspend(?:ed)?|KYC))\b'
+        - '\b(?:electricity\b.{0,30}?\b(?:disconnect(?:ed)?|cut\s*off|power\s*cut|tonight|unpaid\s*bill))\b'
+        - '\b(?:subscription\b.{0,25}?\b(?:suspended|cancelled|expired|on\s*hold)|membership\s*on\s*hold)\b'
         - '\b(?:digital\s*arrest|digital\s*custody|video\s*call\s*(?:police|cbi|investigation)|contraband|drugs?\s*found|money\s*laundering)\b'
         - '\b(?:verify\s*(?:your\s*)?identity|failure\s*to\s*comply)\b'
         - '\b(?:penalty|fine\s*of|prosecution)\b'
-        - '\b(?:band\s*ho\s*(?:jayega|jayegi|jaega)|block\s*ho|suspend\s*ho)\b'
-        - '\b(?:बंद\s*हो\s*जाएगा|बंद\s*हो\s*जाएगी|ब्लॉक|निलंबित|कानूनी\s*कार्रवाई|डिजिटल\s*अरेस्ट|बिजली\s*कट)\b'
+        - '\b(?:band\s*ho\s*(?:jayega|jayegi|jaega)|block\s*ho|suspend\s*ho|bijli\s*kat)\b'
+        - '\b(?:बंद\s*हो\s*जाएगा|बंद\s*हो\s*जाएगी|ब्लॉक|निलंबित|कानूनी\s*कार्रवाई|डिजिटल\s*अरेस्ट|बिजली\s*कट|बिजली\s*कट\s*जाएगी|सिम\s*बंद)\b'
 
     # ── ASK ───────────────────────────────────────────────────────────────────
     - id: ask_link
@@ -168,14 +172,15 @@ default:
       label: Payment request
       label_hi: "भुगतान की माँग"
       points: 30
-      reason: "Demands upfront payment, processing charges, or transfer to an unknown account."
-      reason_hi: "अग्रिम शुल्क, प्रोसेसिंग फीस या अज्ञात खाते में पैसे भेजने की माँग की जा रही है।"
+      reason: "Demands upfront payment, processing charges, card updates, or transfer to an unknown account."
+      reason_hi: "अग्रिम शुल्क, कार्ड अपडेट, प्रोसेसिंग फीस या अज्ञात खाते में पैसे भेजने की माँग की जा रही है।"
       patterns:
         - '\b(?:pay\s*(?:Rs|₹|INR)?\s*\d+)\b'
         - '\b(?:(?:Rs|₹|INR)\s*\d+\s*(?:fee|charge|fine|penalty))\b'
         - '\b(?:fee\s*of\s*(?:Rs|₹|INR)?\s*\d+)\b'
         - '\b(?:transfer|send)\s*(?:Rs|₹|INR)\s*\d+'
         - '\b(?:processing\s*fee|shipping\s*fee|delivery\s*charge)\b'
+        - '\b(?:update\s*(?:your\s*)?(?:card|credit\s*card|debit\s*card|payment\s*method|billing(?:\s*info)?))\b'
         - '\b(?:भुगतान|शुल्क|फीस)\b'
         - '\b(?:paisa|paise)\s*(?:bhej|de|do|send)\b'
 
@@ -184,13 +189,13 @@ default:
       label: OTP / PIN / credential request
       label_hi: "OTP/PIN/पासवर्ड माँगा"
       points: 40
-      reason: "Asks for confidential security credentials (OTP, PIN, CVV, password) which legitimate banks and services NEVER request."
-      reason_hi: "गोपनीय सुरक्षा कोड (OTP, PIN, CVV, पासवर्ड) माँगा जा रहा है। कोई भी वैध बैंक या संस्था कभी OTP नहीं माँगती।"
+      reason: "Asks for confidential security credentials (OTP, PIN, CVV, 6-digit code, password) which legitimate banks and services NEVER request."
+      reason_hi: "गोपनीय सुरक्षा कोड (OTP, PIN, CVV, 6-अंकीय कोड, पासवर्ड) माँगा जा रहा है। कोई भी वैध बैंक या संस्था कभी OTP नहीं माँगती।"
       patterns:
-        - '\b(?:share|send|enter|tell|give|provide|bata|batao|bataye|dein|dijiye|bhej)\b[^.!?;\n\u0964\u0965]{0,60}?\b(?:O[\s.-]*T[\s.-]*P|P[\s.-]*I[\s.-]*N|C[\s.-]*V[\s.-]*V|password|passcode|card\s*number|ATM\s*pin)\b'
-        - '\b(?:O[\s.-]*T[\s.-]*P|P[\s.-]*I[\s.-]*N|C[\s.-]*V[\s.-]*V|password|passcode|card\s*number|ATM\s*pin)\b[^.!?;\n\u0964\u0965]{0,60}?\b(?:share|send|enter|tell|give|provide|bata|batao|bataye|dein|dijiye|bhej)\b'
-        - '\b(?:O[\s.-]*T[\s.-]*P|पिन|ओटीपी|सीवीवी|पासवर्ड)\b[^.!?;\n\u0964\u0965]{0,60}?\b(?:बताएं|बताइए|भेजें|दें|दीजिए|बता\s*दो|बता\s*दें|शेयर)\b'
-        - '\b(?:बताएं|बताइए|भेजें|दें|दीजिए|बता\s*दो|बता\s*दें|शेयर)\b[^.!?;\n\u0964\u0965]{0,60}?\b(?:O[\s.-]*T[\s.-]*P|पिन|ओटीपी|सीवीवी|पासवर्ड)\b'
+        - '\b(?:share|send|enter|tell|give|provide|bata|batao|bataye|dein|dijiye|bhej)\b[^.!?;\n\u0964\u0965]{0,60}?\b(?:O[\s.-]*T[\s.-]*P|P[\s.-]*I[\s.-]*N|C[\s.-]*V[\s.-]*V|password|passcode|card\s*number|ATM\s*pin|(?:6|4)[- ]digit\s*(?:code|pin)|verification\s*code|security\s*code)\b'
+        - '\b(?:O[\s.-]*T[\s.-]*P|P[\s.-]*I[\s.-]*N|C[\s.-]*V[\s.-]*V|password|passcode|card\s*number|ATM\s*pin|(?:6|4)[- ]digit\s*(?:code|pin)|verification\s*code|security\s*code)\b[^.!?;\n\u0964\u0965]{0,60}?\b(?:share|send|enter|tell|give|provide|bata|batao|bataye|dein|dijiye|bhej)\b'
+        - '\b(?:O[\s.-]*T[\s.-]*P|पिन|ओटीपी|सीवीवी|पासवर्ड|कोड)\b[^.!?;\n\u0964\u0965]{0,60}?\b(?:बताएं|बताइए|भेजें|दें|दीजिए|बता\s*दो|बता\s*दें|शेयर)\b'
+        - '\b(?:बताएं|बताइए|भेजें|दें|दीजिए|बता\s*दो|बता\s*दें|शेयर)\b[^.!?;\n\u0964\u0965]{0,60}?\b(?:O[\s.-]*T[\s.-]*P|पिन|ओटीपी|सीवीवी|पासवर्ड|कोड)\b'
 
     - id: ask_remote_access
       category: ask

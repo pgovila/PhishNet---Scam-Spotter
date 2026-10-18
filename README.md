@@ -102,7 +102,7 @@ PhishNet is a production-ready, privacy-first cybersecurity tool tailored for In
 ├── Dockerfile                       # Multi-service production container (8501 & 8000)
 ├── packages.txt                     # System dependencies (tesseract-ocr)
 ├── pyproject.toml                   # Project metadata & Ruff configuration
-├── requirements.txt                 # Compatible production dependencies (>=)
+├── requirements.txt                 # Fully pinned dependencies (==)
 ├── SECURITY.md                      # Security disclosure policy
 └── submission.yaml                  # Hackathon metadata & video links
 ```
@@ -208,32 +208,36 @@ ruff format --check .
 
 ---
 
-## 🎯 Empirical Benchmark & Authenticity (100-Message Evaluation)
+## 🎯 Empirical Benchmark & Authenticity (Dual Evaluation)
 
-To ensure real-world durability and eliminate bias, PhishNet is evaluated against an independent, balanced benchmark dataset (`data/benchmark_dataset.json`) containing **100 annotated real-world Indian communications** (50 confirmed fraudulent messages and 50 authentic notifications).
+To ensure real-world durability, eliminate evaluation bias, and provide transparent metrics, PhishNet is evaluated across two distinct datasets: our curated regression suite (`data/benchmark_dataset.json`) and an independent blind test of 30 fresh messages.
 
-### Ground Truth Performance Metrics
+### Dual Benchmark Performance Comparison
 
-| Metric | Score | Interpretation |
-| :--- | :--- | :--- |
-| **Accuracy** | **95.00%** | Overall correct classifications across scam and benign traffic |
-| **Precision** | **95.92%** | When PhishNet flags a threat, it is a genuine scam 95.9% of the time |
-| **Recall (Sensitivity)** | **94.00%** | Catches 47 out of 50 deceptive attacks in the test set |
-| **F1 Score** | **94.95%** | Harmonic mean of precision and recall |
-| **False Positive Rate** | **4.00%** | Low false alarm rate on genuine academic, bank, and delivery SMS |
-| **False Negative Rate** | **6.00%** | Only 3 subtle edge cases missed at default thresholds |
+| Metric | Curated Regression Suite (100 Messages) | Fresh / Blind Test (30 Messages) | Interpretation |
+| :--- | :--- | :--- | :--- |
+| **Dataset Size** | 100 messages (50 scam, 50 genuine) | 30 fresh messages (15 scam, 15 genuine) | Calibrated against Indian telecom & bank messages |
+| **Accuracy** | **95.00%** | **87.00%** | Robust overall classification across deceptive and benign traffic |
+| **Precision** | **95.92%** | **100.00%** | **0 false alarms** in 15 fresh genuine bank/academic communications |
+| **Recall (Sensitivity)** | **94.00%** | **73.33%** | 11 of 15 scams detected out of the box in blind evaluation |
+| **F1 Score** | **94.95%** | **84.62%** | Harmonic mean of precision and recall |
+| **False Positive Rate** | **4.00%** | **0.00%** | High user trust: safe messages are not flooded with false panic |
+
+### Lessons from Blind Evaluation
+In initial blind evaluation of 30 un-tuned messages, four deceptive edge cases were originally missed (electricity disconnection "tonight", hotel review task lures, SIM KYC "6-digit code", and OTT subscription "update card" notices). We transparently documented these findings and incorporated them into our rulebook without inflating false positives or sacrificing 100% precision on benign traffic.
 
 ### Real-World Edge Cases Solved
 1. **Zero-Width Character Evasions**: Attackers inserting invisible zero-width spaces (`\u200b`, `\ufeff`) or soft hyphens (`\u00ad`) into words like `O​T​P` or `k​y​c` are stripped during NFKC normalisation before regex execution.
 2. **Devanagari Vowel Sign Boundaries**: Python's standard `\b` regex boundary fails on Hindi words ending in combining vowel signs (`ा`, `ी`, `े`) or anusvara (`ं`) because Python Unicode `\w` only treats letters and numbers as word characters. PhishNet uses a script-aware boundary that includes all Devanagari vowel signs (`\u0900-\u0963`) while strictly excluding sentence-ending danda (`।`).
 3. **Sentence-Scoped Protective Context**: Previously, messages like *"Never share your OTP with anyone. Send OTP to 9876543210"* canceled the OTP finding because the protective phrase appeared in the first sentence. PhishNet now scopes protective context strictly to the clause/sentence containing the credential request.
 4. **False Alarm Neutralisation for Verified Institutions**: Genuine university notifications (`.ac.in`, `.edu.in`) and government updates (`.gov.in`) with HTTPS links automatically neutralize generic urgency and payment flags, preventing real college fee reminders from being marked High risk.
-5. **Emerging Indian Attack Vectors Covered**:
+5. **Legitimate Bank Transaction Alerts**: Authentic bank debit/credit messages signed by institutions (`-SBI`, `-HDFC`) containing mandatory dispute instructions (*"If not done by you, call immediately"*) are recognized as protective advisory context rather than penalized as high-pressure scam tactics.
+6. **Emerging Indian Attack Vectors Covered**:
    - **Digital Arrest**: Police/CBI/Narcotics Control Bureau video-call threats.
    - **Remote Screen Sharing**: Coercion to install AnyDesk, TeamViewer, or RustDesk.
    - **UPI Collect Request Tricks**: Reverse refund scams claiming "enter PIN to receive cash back".
    - **Malicious APK Sideloading**: Direct `.apk` download prompts disguised as bank updates.
-   - **Part-Time Work / Telegram Tasks**: YouTube like/review task lures promising daily ₹2,000–₹5,000.
+   - **Part-Time Work / Telegram Tasks**: Hotel rating and YouTube task lures promising daily ₹2,000–₹5,000.
 
 ---
 
@@ -256,10 +260,12 @@ While PhishNet provides an uncompromising free tier for end-users, sustainable s
 *Note: Pricing tiers reflect pilot design assumptions and are subject to commercial validation during campus/institutional beta trials.*
 
 ### Live Threat Telemetry Dashboard
-The PhishNet application features a built-in read-only **Threat Trends & Telemetry** dashboard fed by persistent SQLite counters, displaying:
+The PhishNet application features a built-in read-only **Threat Trends & Telemetry** dashboard fed by local SQLite counters, displaying:
 - Total scans and risk-tier distribution (High, Medium, Safe).
 - High-frequency scam vectors (e.g. KYC fraud, digital arrest, fake electricity disconnection).
 - Common evasion tactics observed (zero-width evasions, URL shorteners, typosquats).
+
+*(Note: On ephemeral cloud hosting like Streamlit Community Cloud, local disk counters reset on redeployment or container restart. Production deployments attach to persistent external databases such as PostgreSQL or Supabase).*
 
 ---
 
@@ -330,12 +336,12 @@ curl -X POST "http://localhost:8000/v1/analyze" \
 ```
 ---
 
-## 🛡️ Privacy, DPDP Act 2023 Compliance & Security Stance
+## 🛡️ Privacy, DPDP Principles & Data Security Stance
 
-PhishNet is designed strictly adhering to the principles of the **Digital Personal Data Protection Act, 2023 (DPDP Act)**:
-- **Zero Data Retention**: Messages, OTPs, phone numbers, and URLs entered or uploaded are processed exclusively in volatile memory and are **never stored, logged, or shared**.
-- **Ephemeral & Local Rules Engine**: Core deconstruction runs entirely offline on local rulebook algorithms without transmitting user message bodies to third-party endpoints.
-- **Client-Side Privacy & PII Scrubbing**: If optional AI explanation is enabled, phone numbers, bank account numbers, and email addresses are automatically scrubbed (`[PHONE]`, `[EMAIL]`) before payload dispatch.
+PhishNet is designed around the principles of the **Digital Personal Data Protection Act, 2023 (DPDP Act)** (data minimisation and zero message retention):
+- **Zero Message Body Retention**: Messages, OTPs, phone numbers, and URLs entered or uploaded are processed in volatile memory and are **never stored in the database or logged**.
+- **Local Rules-First Engine**: Core Bait-Hook-Ask triage runs entirely offline on local rulebook algorithms without transmitting user message bodies to third-party endpoints.
+- **Client-Side Privacy & PII Scrubbing**: If optional external features are explicitly enabled by the user (such as AI simplified explanations or external threat-intelligence lookups like Google Safe Browsing or VirusTotal), phone numbers, bank account numbers, and email addresses are automatically scrubbed (`[PHONE]`, `[EMAIL]`) before dispatch, and only bare domains are queried.
 - **SSRF & Outbound Safe**: The offline link parser inspects domain anatomy, Unicode scripts, and Levenshtein distance against known Indian entities without performing active DNS lookups or outbound HTTP queries during evaluation.
 
 > [!NOTE]

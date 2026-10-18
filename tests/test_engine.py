@@ -259,3 +259,68 @@ def test_examples_rulebook(example):
         f"findings={[(f.rule_id, f.points) for f in result.findings]}"
     )
     assert result.tier == expected["tier"]
+
+
+class TestBankDebitAlert:
+    """Authentic bank debit alert with dispute advisory should remain Low risk."""
+
+    TEXT = (
+        "Dear Customer, your a/c 1234 is debited by Rs 500 on 18-Oct-26. "
+        "If not done by you, call 1800112211 immediately. -SBI"
+    )
+
+    def test_debit_alert_protective_urgency(self):
+        result = _full_analyse(self.TEXT, mode="default")
+        assert result.score <= 15
+        assert result.tier == "low"
+        # Check that urgency is recognized as protective
+        pressure_findings = [f for f in result.findings if f.rule_id == "hook_pressure"]
+        assert len(pressure_findings) >= 1
+        assert pressure_findings[0].protective is True
+
+
+class TestFreshScamDetections:
+    """Verify previously missed scam patterns are properly detected."""
+
+    def test_electricity_power_cut_tonight(self):
+        text = "Your electricity power supply will be disconnected tonight at 9:30 PM due to unpaid bill. Call officer immediately."
+        result = _full_analyse(text, mode="default")
+        assert result.score >= 30
+        assert result.tier in ("medium", "high")
+
+    def test_hotel_rating_work_from_home(self):
+        text = (
+            "Work from home job: Rate hotels on google and earn Rs 3000 daily. Contact on Telegram."
+        )
+        result = _full_analyse(text, mode="default")
+        assert result.score >= 30
+        assert result.tier in ("medium", "high")
+
+    def test_sim_kyc_6_digit_code(self):
+        text = "Dear customer your SIM KYC is pending. Please share the 6-digit code sent to your number to prevent SIM deactivation."
+        result = _full_analyse(text, mode="default")
+        assert result.score >= 60
+        assert result.tier == "high"
+
+    def test_netflix_card_update(self):
+        text = "Netflix: Your membership is on hold. Please update your card immediately to avoid cancellation: http://netflix-billing.example"
+        result = _full_analyse(text, mode="default")
+        assert result.score >= 60
+        assert result.tier == "high"
+
+
+class TestMultipleSpanHighlighting:
+    """Ensure all matching phrases are preserved in findings for highlighting."""
+
+    def test_sbi_multiple_spans_preserved(self):
+        result = _full_analyse(TestSBIKYCScam.TEXT, mode="default")
+        matched_texts = [f.matched_text for f in result.findings]
+        # In SBI sample, both 'account will be blocked' and 'KYC is incomplete' should be present
+        assert any("blocked" in t for t in matched_texts)
+        assert any("incomplete" in t for t in matched_texts)
+        # Both 'today' and 'immediately' should be present
+        assert any("today" in t for t in matched_texts)
+        assert any("immediately" in t for t in matched_texts)
+        # But points are only awarded once per rule
+        assert result.raw_score == 120
+        assert result.score == 100
